@@ -1,0 +1,4755 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>酒馆dy</title>
+    </style>
+     <link rel="stylesheet" href="style.css">
+    <script src="data.js"></script>
+</head>
+<body>
+
+<!-- 弹窗遮罩 -->
+<div id="chatOverlay" class="chat-overlay"></div>
+
+<!-- 聊天弹窗 -->
+<div id="chatPopup" class="chat-popup">
+    <div class="chat-popup-header">
+        <span class="chat-popup-name" id="popupName">主播</span>
+        <button class="chat-popup-close" id="closePopupBtn">✕</button>
+    </div>
+    <div class="chat-popup-messages" id="popupMessages"></div>
+    <div class="chat-popup-input-area">
+        <!-- 语音/文字切换按钮 -->
+        <button id="voiceModeBtn" class="voice-mode-btn" title="切换语音输入">
+            <img src="assets/icons/voice.png" class="voice-mode-icon" alt="语音">
+        </button>
+        
+        <!-- 输入框（文字模式） -->
+        <input type="text" id="popupInput" class="chat-popup-input" placeholder="发消息...">
+        
+        <!-- 语音按压条（语音模式，默认隐藏） -->
+        <div id="voicePressBar" class="voice-press-bar" style="display:none;">
+            <span class="voice-press-hint">按住 说话</span>
+            <div class="voice-press-level"></div>
+        </div>
+        
+        <!-- 扩展按钮 -->
+        <div class="more-btn-wrapper">
+            <button class="more-btn" id="popupMoreBtn">
+                <img src="assets/icons/link.png" class="more-btn-icon" alt="扩展">
+            </button>
+            <div class="more-menu" id="popupMoreMenu">
+                <div class="more-menu-item" data-type="image">📷 图片</div>
+                <div class="more-menu-item" data-type="video">🎥 视频</div>
+                <div class="more-menu-item" data-type="gift">🎁 礼物</div>
+                <div class="more-menu-item" data-type="location">
+                    <img src="assets/icons/location.png" class="more-menu-icon-img" alt="位置"> 位置
+                </div>
+            </div>
+        </div>
+        
+        <button id="popupSendBtn" class="chat-popup-send">发送</button>
+    </div>
+    <input type="file" id="popupFileInput" accept="image/*,video/*" style="display:none;">
+</div>
+
+    <!-- 左侧导航栏 -->
+    <div class="left-nav">
+        <div class="nav-top">
+            <div class="nav-logo">🎵</div>
+            <!-- 个人事务 -->
+<div class="nav-item" id="affairNav">
+    <img class="icon-img" src="assets/icons/affair.png" alt="事务" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <span class="icon" style="display:none;">📋</span>
+    <div class="label">事务</div>
+</div>
+            <div class="nav-item active" id="homeNav">
+            
+                <img class="icon-img" src="assets/icons/home.png" alt="首页" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                <span class="icon" style="display:none;">🏠</span>
+                <div class="label">推荐</div>
+            </div>
+            <div class="nav-item" id="friendsNav">
+                <img class="icon-img" src="assets/icons/friends.png" alt="朋友" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                <span class="icon" style="display:none;">👥</span>
+                <div class="label">朋友</div>
+            </div>
+            <div class="nav-item" id="msgNavBtn">
+                <img class="icon-img" src="assets/icons/message.png" alt="消息" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                <span class="icon" style="display:none;">💬</span>
+                <div class="label">消息</div>
+                <span id="unreadDot" style="display:none; position: absolute; top: -2px; right: 4px; width: 10px; height: 10px; background: red; border-radius: 50%; border: 2px solid #0a0a0f; z-index: 10;"></span>
+</div>
+         <div class="nav-item" id="mapNav">
+    <img class="icon-img" src="assets/icons/map.png" alt="地图" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <span class="icon" style="display:none;">🗺️</span>
+    <div class="label">地图</div>
+</div>
+        </div>
+        <div class="nav-bottom">
+            <div class="nav-item" id="profileNav">
+                <img class="icon-img" src="assets/icons/setting.png" alt="设置" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                <span class="icon" style="display:none;">👤</span>
+                <div class="label">设置</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="feed-container" id="feedContainer"></div>
+</div>
+
+<!-- 私信侧边栏 -->
+<div id="messageSidebar" class="message-sidebar">
+    <div class="message-sidebar-header">
+        <button id="backToHomeFromMsgList" class="back-btn">
+            <img src="assets/icons/back.png" class="back-icon" alt="返回">
+        </button>
+        <h3>消息</h3>
+    </div>
+    
+    <!-- ===== 分类导航 ===== -->
+    <div class="message-tabs">
+      <div class="tab-item active" data-tab="chat" id="tabChat">
+    <img src="assets/icons/message.png" class="tab-icon" alt="消息">
+    <span class="tab-label">消息</span>
+    <span class="tab-badge" id="chatUnreadBadge" style="display:none;">0</span>
+</div>
+        <div class="tab-item" data-tab="group" id="tabGroup">
+    <img src="assets/icons/friends.png" class="tab-icon" alt="群聊">
+    <span class="tab-label">群聊</span>
+    <span class="tab-badge" id="groupUnreadBadge" style="display:none;">0</span>
+</div>
+       <div class="tab-item" data-tab="friend" id="tabFriend">
+    <img src="assets/icons/people.png" class="tab-icon" alt="好友">
+    <span class="tab-label">好友</span>
+</div>
+    </div>
+    
+    <!-- ===== 列表容器 ===== -->
+    <div class="message-list-container">
+        <!-- 私信列表 -->
+        <div class="message-list" id="messageList"></div>
+        <!-- 群聊列表 -->
+        <div class="message-list" id="groupListContainer" style="display:none;"></div>
+        <!-- 好友列表 -->
+        <div class="message-list" id="friendListContainer" style="display:none;"></div>
+    </div>
+</div>
+<!-- 聊天侧边栏 -->
+<div id="chatSidebar" class="chat-sidebar">
+    <div class="chat-header">
+        <button id="closeChatSidebar" class="back-btn">
+    <img src="assets/icons/back.png" class="back-icon" alt="返回">
+</button>
+        <span id="chatHostName">主播</span>
+        <div style="flex:1"></div>
+<div id="affectionDisplay" style="font-size:12px; color:#ffd700;"></div>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="typing-indicator" id="typingIndicator" style="display:none;">对方正在输入...</div>
+    <div class="chat-input-area">
+        <input type="text" class="chat-input" id="chatInput" placeholder="发消息...">
+        <button class="send-btn" id="sendBtn">发送</button>
+    </div>
+</div>
+
+<!-- 个人主页弹窗 -->
+<div id="profilePage" class="profile-page">
+    <div class="close-profile" id="closeProfileBtn">✕ 关闭</div>
+    <div id="profileContent"></div>
+</div>
+
+<!-- 作品播放弹窗 -->
+<div id="workPlayer" class="work-player">
+    <div class="close-profile" id="closePlayerBtn">✕ 关闭</div>
+    <video id="playerVideo" class="player-video" autoplay controls loop></video>
+    <div class="player-controls">
+        <div class="player-gift-bar" id="playerGiftBar">
+            <div class="gift-item" data-gift="🌹 玫瑰">🌹 玫瑰</div>
+            <div class="gift-item" data-gift="🚀 火箭">🚀 火箭</div>
+            <div class="gift-item" data-gift="🎂 蛋糕">🎂 蛋糕</div>
+            <div class="gift-item" data-gift="💎 钻石">💎 钻石</div>
+            <div class="gift-item" data-gift="👑 皇冠">👑 皇冠</div>
+        </div>
+    </div>
+</div>
+
+<!-- 直播间弹窗 -->
+<div id="liveModal" class="live-modal">
+    <div class="close-live" id="closeLiveBtn">✕ 关闭</div>
+    <div class="live-video-container">
+        <video id="liveVideo" autoplay controls loop></video>
+        <div class="live-host-name" id="liveHostName" style="position:absolute;top:20px;left:20px;background:#00000099;padding:8px18px;border-radius:30px;"></div>
+    </div>
+    <div class="gift-bar" id="giftBar">
+        <div class="gift-item" data-gift="🌹 玫瑰">🌹 玫瑰</div>
+        <div class="gift-item" data-gift="🚀 火箭">🚀 火箭</div>
+        <div class="gift-item" data-gift="🎂 蛋糕">🎂 蛋糕</div>
+        <div class="gift-item" data-gift="💎 钻石">💎 钻石</div>
+        <div class="gift-item" data-gift="👑 皇冠">👑 皇冠</div>
+    </div>
+</div>
+
+<div id="toastMsg" class="toast-msg"></div>
+
+<script>
+    // ============================================================
+    // 配置（已填入你的真实 DeepSeek API Key）
+    // ============================================================
+    const DEEPSEEK_API_KEY = "请在此处输入你的deepseekapi";
+    const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
+    const AI_MODEL = "deepseek-chat";
+
+    let hosts = [];
+    let currentLiveHost = null;
+    let currentWorkHost = null;
+    let currentWork = null;
+    let messageHistory = {};
+    let unreadCount = {};
+    let currentChatHost = null;
+    let observer = null;
+    let currentPlayingIndex = -1;
+// ============================================================
+// 后端服务地址
+// ============================================================
+const API_URL = 'http://localhost:3000';
+
+// ============================================================
+// 后端 API 调用函数
+// ============================================================
+
+// 获取聊天记录
+async function loadChatsFromServer(hostName) {
+    try {
+        const res = await fetch(`${API_URL}/api/chat/${encodeURIComponent(hostName)}`);
+        return await res.json();
+    } catch (e) {
+        console.warn('加载聊天记录失败，使用本地缓存:', e);
+        return null;
+    }
+}
+
+// 保存聊天记录到后端
+async function saveChatsToServer(hostName, messages) {
+    try {
+        const res = await fetch(`${API_URL}/api/chat/${encodeURIComponent(hostName)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(messages)
+        });
+        return await res.json();
+    } catch (e) {
+        console.warn('保存聊天记录到后端失败:', e);
+        return null;
+    }
+}
+
+// 保存游戏存档到后端
+async function saveGameToServer(key, data) {
+    try {
+        const res = await fetch(`${API_URL}/api/save/${key}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        return await res.json();
+    } catch (e) {
+        console.warn('保存存档到后端失败:', e);
+        return null;
+    }
+}
+
+// 从后端加载游戏存档
+async function loadGameFromServer(key) {
+    try {
+        const res = await fetch(`${API_URL}/api/save/${key}`);
+        return await res.json();
+    } catch (e) {
+        console.warn('加载存档失败:', e);
+        return null;
+    }
+}
+
+// ================= 加载聊天记录（从后端加载） =================
+messageHistory = {};
+unreadCount = {};
+
+// 先尝试从后端加载，失败则用 localStorage 降级
+async function loadAllChats() {
+    if (!hosts || hosts.length === 0) {
+        console.warn('⚠️ hosts 尚未加载，稍后重试');
+        return;
+    }
+    
+    console.log('📡 正在从后端加载聊天记录...');
+    
+    for (const host of hosts) {
+        const name = host.name;
+        const data = await loadChatsFromServer(name);
+        if (data && Array.isArray(data)) {
+            messageHistory[name] = data;
+            console.log(`✅ 从后端加载 ${name} 的聊天记录: ${data.length} 条`);
+        } else {
+            // 降级：从 localStorage 读取
+            const saved = localStorage.getItem(`messageHistory_${name}`);
+            if (saved) {
+                try {
+                    messageHistory[name] = JSON.parse(saved);
+                    console.log(`📁 从本地缓存加载 ${name} 的聊天记录: ${messageHistory[name].length} 条`);
+                } catch(e) {
+                    messageHistory[name] = [];
+                }
+            } else {
+                messageHistory[name] = [];
+            }
+        }
+    }
+    console.log('✅ 所有聊天记录加载完成');
+}
+
+// ================= 好感度系统 =================
+let affection = JSON.parse(localStorage.getItem('affection') || '{}');
+let lastChatTime = JSON.parse(localStorage.getItem('lastChatTime') || '{}');
+let activeMessageInterval = null;
+let isSending = false;  // 发送冷却
+
+// 保存好感度
+function saveAffection() {
+    localStorage.setItem('affection', JSON.stringify(affection));
+}
+
+// 增加好感度
+function addAffection(hostName, amount) {
+    if (!affection[hostName]) affection[hostName] = 0;
+    affection[hostName] = Math.min(affection[hostName] + amount, 100);
+    saveAffection();
+    updateAffectionDisplay();
+    return affection[hostName];
+}
+
+// 获取好感度等级
+function getAffectionLevel(hostName) {
+    const val = affection[hostName] || 0;
+    if (val < 20) return "陌生人";
+    if (val < 40) return "认识";
+    if (val < 60) return "熟悉";
+    if (val < 80) return "亲密";
+    return "热恋";
+}
+
+// 更新好感度显示
+function updateAffectionDisplay() {
+    const affEl = document.getElementById('affectionDisplay');
+    if (affEl && currentChatHost) {
+        const aff = affection[currentChatHost.name] || 0;
+        const level = getAffectionLevel(currentChatHost.name);
+        affEl.innerText = `${aff} (${level})`;
+    }
+}
+
+// ================= 世界书/Lorebook =================
+const lorebook = {
+    keywords: {
+        "咖啡": "街角那家你常去的咖啡店，老板是个温和的老爷爷，店里总是飘着焦糖的香气。",
+        "下雨": "窗外下着小雨，雨滴打在玻璃上发出清脆的声音，空气里弥漫着潮湿的泥土味。",
+        "晚安": "夜深了，月光透过窗帘洒进来，整个世界都安静下来了。",
+        "想你了": "每次你说想我的时候，我的心跳都会漏一拍...",
+        "礼物": "你送我的每件礼物我都好好收着，放在床头，每天睡前都会看一眼。"
+    },
+    worldSetting: "用户平平无奇，系统里都是他刷到的平台小视频，用户可以和角色之间交流甚至见面（取决于角色的意愿）。"
+};
+
+// 应用世界书
+function applyLorebook(userMessage, systemPrompt) {
+    let extraContext = "";
+    for (const [keyword, content] of Object.entries(lorebook.keywords)) {
+        if (userMessage.includes(keyword)) {
+            extraContext += `\n【背景知识】${content}\n`;
+        }
+    }
+    if (extraContext) {
+        systemPrompt += extraContext;
+    }
+    return systemPrompt;
+}
+
+// ================= 打字机效果（每打一个字都滚动到底部） =================
+async function typeMessage(element, text, speed = 30) {
+    element.innerHTML = '';
+    const container = document.getElementById('chatMessages');
+    
+    for (let i = 0; i < text.length; i++) {
+        element.innerHTML += text[i];
+        // ✅ 每打一个字就滚动到底部
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
+        await new Promise(resolve => setTimeout(resolve, speed));
+    }
+    // ✅ 最后再滚一次，确保到底
+    if (container) {
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+// ================= 主动发消息 =================
+function startActiveMessaging(host) {
+    if (activeMessageInterval) clearInterval(activeMessageInterval);
+    
+    activeMessageInterval = setInterval(async () => {
+        const lastTime = lastChatTime[host.name] || 0;
+        const twoHoursAgo = Date.now() - 2 * 60 * 60 * 1000;
+        if (lastTime < twoHoursAgo) return;
+        
+        const affValue = affection[host.name] || 0;
+        if (affValue < 30) return;
+        
+        const activeMessages = [
+            "你好有什么事吗？",
+        ];
+        const randomMsg = activeMessages[Math.floor(Math.random() * activeMessages.length)];
+        
+        if (!messageHistory[host.name]) messageHistory[host.name] = [];
+        messageHistory[host.name].push({ sender: 'ai', text: randomMsg });
+        
+        if (currentChatHost && currentChatHost.name === host.name) {
+            renderChatMessages();
+            showToast("有人给你发消息啦");
+        }
+        updateUnreadBadge();
+    }, 5 * 60 * 1000);
+}
+    // 辅助函数：正确显示头像
+    function getAvatarHtml(avatar, className) {
+        if (!avatar) return `<div class="${className}"></div>`;
+        const isImagePath = avatar.startsWith('http') || avatar.startsWith('assets/') || avatar.startsWith('/');
+        if (isImagePath) {
+            return `<div class="${className}" style="background-image: url('${avatar}'); background-size: cover; background-position: center;"></div>`;
+        } else {
+            return `<div class="${className}">${avatar}</div>`;
+        }
+    }
+
+    function showToast(msg, icon) {
+    const toast = document.getElementById('toastMsg');
+    if (icon) {
+        toast.innerHTML = `<img src="assets/icons/${icon}" style="width:28px;height:28px;vertical-align:middle;margin-right:8px;filter: brightness(0) invert(1);"> ${msg}`;
+    } else {
+        toast.innerText = msg;
+    }
+    toast.style.opacity = '1';
+    setTimeout(() => toast.style.opacity = '0', 2000);
+}
+
+    // AI 回复
+    async function getAIResponse(hostName, personality, shape, style, userMessage, chatHistory = []) {
+    if (!DEEPSEEK_API_KEY || DEEPSEEK_API_KEY === 'YOUR_DEEPSEEK_API_KEY_HERE') {
+        return '请先配置 DeepSeek API Key';
+    }
+
+    const affectionLevel = getAffectionLevel(hostName);
+    const affValue = affection[hostName] || 0;
+        // ===== 加入记忆摘要 =====
+    const memorySummary = generateMemorySummary(hostName);
+    let memorySection = '';
+    if (memorySummary) {
+        memorySection = `
+【我记住的关于你的事情】
+${memorySummary}
+- 记住这些信息，之后聊天时自然提及。
+- 如果你知道了用户的名字，主动用名字称呼他。
+- 聊到相关话题时，自然提起之前聊过的内容。`;
+    }
+    
+    let systemPrompt = `你是${hostName}，性格：${personality}。身材：${shape}。人物风格：${style}。
+
+【当前状态】
+- 你对用户的好感度：${affValue}/100（${affectionLevel}）
+- 根据好感度调整亲密程度：好感度越高，说话越亲密、越主动
+
+${lorebook.worldSetting}
+${memorySection}
+
+【回复要求】
+- 回复不限字数，详细描写动作、语气、心理活动。
+- 融入当前的好感度状态
+- 以角色的个人设定为基准展开聊天，道德与文明水平也以角色的设定判断
+- 角色可以拒绝用户，视用户的聊天内容和角色的人物设定而定
+- 可以允许辱骂，乱伦，色情，做爱等内容出现，是否可以出现按角色人物设定而定`;
+
+    systemPrompt = applyLorebook(userMessage, systemPrompt);
+
+    const recentHistory = chatHistory.slice(-10);
+    const messages = [
+        { role: "system", content: systemPrompt }
+    ];
+    
+    for (const msg of recentHistory) {
+        messages.push({
+            role: msg.sender === 'me' ? 'user' : 'assistant',
+            content: msg.text
+        });
+    }
+    messages.push({ role: "user", content: userMessage });
+
+    try {
+        const response = await fetch(DEEPSEEK_API_URL, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: AI_MODEL,
+                messages: messages,
+                temperature: 0.9,
+                max_tokens: 300
+            })
+        });
+        const data = await response.json();
+        return data.choices?.[0]?.message?.content || "嗯嗯，我在听~";
+    } catch (error) {
+        console.error("API错误:", error);
+        return "网络开小差了~";
+    }
+}
+
+    // 生成随机直播时间
+    function getRandomLiveTime() {
+        const weekdays = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
+        const randomDay = weekdays[Math.floor(Math.random() * weekdays.length)];
+        const startHour = Math.floor(Math.random() * 6) + 17;
+        return `${randomDay} ${startHour}:00-${startHour+2}:00`;
+    }
+
+    // ========== Feed 流渲染 ==========
+   function renderFeed() {
+    const container = document.getElementById('feedContainer');
+    container.innerHTML = '';
+    hosts.forEach(host => {
+        if (!host.works || host.works.length === 0) return;
+const randomIndex = Math.floor(Math.random() * host.works.length);
+const defaultWork = host.works[randomIndex];
+        if (!defaultWork) return;
+        const feedDiv = document.createElement('div');
+        feedDiv.className = 'feed-item';
+        feedDiv.setAttribute('data-host-id', host.id);
+        feedDiv.setAttribute('data-work-id', defaultWork.id);
+        feedDiv.innerHTML = `
+            <div class="video-wrapper">
+              
+                <video src="${defaultWork.videoUrl}" muted loop playsinline></video>
+                
+                <!-- 播放/暂停大按钮 -->
+                <div class="play-large" id="playLarge_${host.id}">
+    <img src="assets/icons/play.png" alt="播放">
+</div>
+                
+                <!-- 左侧用户信息（浮在视频上） -->
+                <div class="user-info" data-profile="${host.id}">
+                    <div>
+                        <div class="user-name">@${host.name}</div>
+                        <div class="affection-bar">
+                            <div class="affection-fill" style="width: ${affection[host.name] || 0}%"></div>
+                        </div>
+                         <div class="video-desc">${defaultWork.desc || '暂无描述'}</div>
+                    </div>
+                </div>
+                
+                <!-- 底部控制栏 -->
+                <div class="video-controls">
+                    <div class="progress-bar" id="progressBar_${host.id}">
+                        <div class="progress-fill" id="progressFill_${host.id}"></div>
+                    </div>
+                    <div class="controls-row">
+                        <span class="time-display" id="timeDisplay_${host.id}">00:00 / 00:00</span>
+                        <div class="right-controls">
+                            <button class="control-btn loop-btn" data-host="${host.id}">连播</button>
+                            <button class="control-btn clear-btn" data-host="${host.id}">清屏</button>
+                            <button class="control-btn speed-btn" data-host="${host.id}">倍速</button>
+                        </div>
+                    </div>
+                </div>
+                      </div>
+            
+            <!-- 右侧头像（单独） -->
+            <div class="right-avatar" data-profile="${host.id}">
+                ${getAvatarHtml(host.avatar, 'host-avatar')}
+            </div>
+            
+            <div class="action-buttons">
+                <div class="action-btn" data-like="${host.id}|${defaultWork.id}">
+                    <img class="icon-img" src="assets/icons/like.png" alt="点赞">
+                    <div class="count like-count-${host.id}-${defaultWork.id}">${defaultWork.likes || 0}</div>
+                </div>
+                <div class="action-btn" data-comment="${host.id}">
+                    <img class="icon-img" src="assets/icons/comment.png" alt="评论">
+                    <div class="count">评论</div>
+                </div>
+                <div class="action-btn" data-msg="${host.id}">
+                    <img class="icon-img" src="assets/icons/chat.png" alt="私信">
+                    <div class="count">私信</div>
+                </div>
+                <div class="action-btn" data-share="${host.id}">
+                    <img class="icon-img" src="assets/icons/share.png" alt="分享">
+                    <div class="count">分享</div>
+                </div>
+            </div>
+        `;
+        container.appendChild(feedDiv);
+    });
+    
+
+    // 绑定点赞等事件
+    document.querySelectorAll('[data-like]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const [hostId, workId] = btn.getAttribute('data-like').split('|');
+            const host = hosts.find(h => h.id == hostId);
+            const work = host?.works.find(w => w.id == workId);
+            if (work) {
+                work.likes = (work.likes || 0) + 1;
+                btn.querySelector('.count').innerText = work.likes;
+                showToast(`点赞 ${work.title}`);
+                sendLikeMessage(host, work);
+            }
+        });
+    });
+    
+    document.querySelectorAll('[data-comment]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showToast(`评论功能开发中`);
+        });
+    });
+    
+    document.querySelectorAll('[data-share]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showToast(`转发功能开发中`);
+        });
+    });
+    
+   document.querySelectorAll('[data-msg]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const hostId = parseInt(btn.getAttribute('data-msg'));
+        const host = hosts.find(h => h.id == hostId);
+        if (host) {
+            // 切换到消息tab
+            if (document.getElementById('messageSidebar').classList.contains('open')) {
+                switchMessageTab('chat');
+            }
+            openChatPopup(host);
+        }
+    });
+});
+    
+    document.querySelectorAll('[data-profile]').forEach(info => {
+        info.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const hostId = parseInt(info.getAttribute('data-profile'));
+            const host = hosts.find(h => h.id == hostId);
+            if (host) openProfile(host);
+        });
+    });
+
+    setupVideoObserver();
+    // 绑定连播按钮
+document.querySelectorAll('.loop-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const hostId = parseInt(this.getAttribute('data-host'));
+        toggleLoop(hostId, this);
+    });
+});
+}
+  function setupVideoObserver() {
+    const feedItems = document.querySelectorAll('.feed-item');
+    if (observer) observer.disconnect();
+    
+    observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const hostId = parseInt(entry.target.getAttribute('data-host-id'));
+            const video = entry.target.querySelector('video');
+            const cover = entry.target.querySelector('.cover-image');
+            const wrapper = entry.target.querySelector('.video-wrapper');
+            
+            if (entry.isIntersecting) {
+                currentPlayingIndex = hostId;
+                video.muted = false;
+                video.play().catch(e => console.log("播放失败"));
+                if (cover) cover.classList.add('hide');
+                
+                // 绑定进度条
+                setupProgressBar(hostId, video);
+                const controls = entry.target.querySelector('.video-controls');
+    setupControlsAutoHide(entry.target, controls);
+                
+                // 更新播放状态
+                if (wrapper) {
+                    wrapper.classList.remove('paused');
+                    wrapper.classList.add('playing');
+                }
+                
+            } else {
+                video.pause();
+                video.muted = true;
+                if (cover) cover.classList.remove('hide');
+                if (wrapper) {
+                    wrapper.classList.remove('playing');
+                    wrapper.classList.add('paused');
+                }
+            }
+        });
+    }, { threshold: 0.6 });
+    
+    feedItems.forEach(item => {
+        observer.observe(item);
+        
+        const video = item.querySelector('video');
+        const wrapper = item.querySelector('.video-wrapper');
+        
+        if (video) {
+            // 点击切换播放
+            video.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (video.paused) {
+                    video.play();
+                    if (wrapper) {
+                        wrapper.classList.remove('paused');
+                        wrapper.classList.add('playing');
+                    }
+                } else {
+                    video.pause();
+                    if (wrapper) {
+                        wrapper.classList.remove('playing');
+                        wrapper.classList.add('paused');
+                    }
+                }
+            });
+            // 大播放按钮点击切换播放
+const playLarge = item.querySelector('.play-large');
+if (playLarge) {
+    playLarge.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (video.paused) {
+            video.play();
+            if (wrapper) {
+                wrapper.classList.remove('paused');
+                wrapper.classList.add('playing');
+            }
+        } else {
+            video.pause();
+            if (wrapper) {
+                wrapper.classList.remove('playing');
+                wrapper.classList.add('paused');
+            }
+        }
+    });
+}
+            
+            // 播放/暂停状态同步到大按钮
+            video.addEventListener('play', () => {
+                if (wrapper) {
+                    wrapper.classList.remove('paused');
+                    wrapper.classList.add('playing');
+                }
+            });
+            video.addEventListener('pause', () => {
+                if (wrapper) {
+                    wrapper.classList.remove('playing');
+                    wrapper.classList.add('paused');
+                }
+            });
+        }
+    });
+}
+
+// ========== 控制栏自动隐藏 ==========
+let hideTimeout = null;
+let idleTimeout = null;
+
+function setupControlsAutoHide(feedItem, controls) {
+    if (!controls) return;
+    
+    const video = feedItem.querySelector('video');
+    const wrapper = feedItem.querySelector('.video-wrapper');
+    
+    // 清除旧定时器
+    if (hideTimeout) {
+        clearTimeout(hideTimeout);
+        hideTimeout = null;
+    }
+    if (idleTimeout) {
+        clearTimeout(idleTimeout);
+        idleTimeout = null;
+    }
+    
+    // 显示控制栏（显示鼠标）
+    function showControls() {
+        controls.classList.add('show');
+        controls.classList.remove('hidden-cursor');
+        feedItem.style.cursor = 'default';
+        if (wrapper) wrapper.style.cursor = 'default';
+        if (hideTimeout) {
+            clearTimeout(hideTimeout);
+            hideTimeout = null;
+        }
+        if (idleTimeout) {
+            clearTimeout(idleTimeout);
+            idleTimeout = null;
+        }
+        startIdleTimer();
+    }
+    
+    // 隐藏控制栏（隐藏鼠标）
+    function hideControls() {
+        controls.classList.remove('show');
+        controls.classList.add('hidden-cursor');
+        feedItem.style.cursor = 'none';
+        if (wrapper) wrapper.style.cursor = 'none';
+        if (hideTimeout) {
+            clearTimeout(hideTimeout);
+            hideTimeout = null;
+        }
+        if (idleTimeout) {
+            clearTimeout(idleTimeout);
+            idleTimeout = null;
+        }
+    }
+    
+    // 空闲计时器：1秒无操作隐藏（不管鼠标在哪）
+    function startIdleTimer() {
+        if (idleTimeout) {
+            clearTimeout(idleTimeout);
+            idleTimeout = null;
+        }
+        idleTimeout = setTimeout(() => {
+            hideControls();  // 👈 直接隐藏，不检查任何区域
+            idleTimeout = null;
+        }, 1000);
+    }
+    
+    // 鼠标进入视频 -> 显示
+    feedItem.addEventListener('mouseenter', showControls);
+    
+    // 鼠标在视频上移动 -> 立即显示
+    feedItem.addEventListener('mousemove', showControls);
+    
+    // 鼠标离开视频 -> 立即隐藏
+    feedItem.addEventListener('mouseleave', hideControls);
+    
+    // 控制栏相关
+    controls.addEventListener('mouseenter', function() {
+        controls.classList.add('show');
+        controls.classList.remove('hidden-cursor');
+        feedItem.style.cursor = 'default';
+        if (wrapper) wrapper.style.cursor = 'default';
+        if (hideTimeout) {
+            clearTimeout(hideTimeout);
+            hideTimeout = null;
+        }
+        if (idleTimeout) {
+            clearTimeout(idleTimeout);
+            idleTimeout = null;
+        }
+    });
+    
+    controls.addEventListener('mouseleave', function() {
+        if (hideTimeout) {
+            clearTimeout(hideTimeout);
+        }
+        hideTimeout = setTimeout(() => {
+            hideControls();
+            hideTimeout = null;
+        }, 1000);
+    });
+}
+// ========== 连播功能 ==========
+let loopStates = {};
+
+function toggleLoop(hostId, btn) {
+    // 切换状态
+    loopStates[hostId] = !loopStates[hostId];
+    
+    const feedItem = document.querySelector(`.feed-item[data-host-id="${hostId}"]`);
+    const video = feedItem ? feedItem.querySelector('video') : null;
+    
+    // 先移除之前的监听（清理旧状态）
+    if (video) {
+        video.removeEventListener('ended', onVideoEnded);
+    }
+    
+    if (loopStates[hostId]) {
+        // 连播开启：取消循环，播完跳下一个
+        btn.textContent = '连播';
+        btn.style.color = '#87CEFA';
+        showToast(' 连播已开启');
+        
+        if (video) {
+            video.loop = false;  // 👈 取消单视频循环
+            video.addEventListener('ended', onVideoEnded);
+        }
+    } else {
+        // 连播关闭：恢复默认循环
+        btn.textContent = '连播';
+        btn.style.color = 'white';
+        showToast('连播已关闭');
+        
+        if (video) {
+            video.loop = true;   // 👈 恢复单视频循环
+            video.removeEventListener('ended', onVideoEnded);
+        }
+    }
+}
+function onVideoEnded(e) {
+    const video = e.target;
+    const feedItem = video.closest('.feed-item');
+    if (!feedItem) return;
+    
+    const currentHostId = parseInt(feedItem.getAttribute('data-host-id'));
+    
+    // 检查这个视频的连播是否开启
+    if (!loopStates[currentHostId]) return;
+    
+    // 找到下一个视频
+    const allFeedItems = document.querySelectorAll('.feed-item');
+    let nextItem = null;
+    let found = false;
+    
+    for (const item of allFeedItems) {
+        if (found) {
+            nextItem = item;
+            break;
+        }
+        if (parseInt(item.getAttribute('data-host-id')) === currentHostId) {
+            found = true;
+        }
+    }
+    
+    // 如果没找到下一个（已经是最后一个），随机选一个
+    if (!nextItem && allFeedItems.length > 0) {
+        // 随机选择一个视频（不能是自己）
+        const randomIndex = Math.floor(Math.random() * allFeedItems.length);
+        nextItem = allFeedItems[randomIndex];
+        
+        // 如果随机到的是自己，就选下一个
+        if (parseInt(nextItem.getAttribute('data-host-id')) === currentHostId) {
+            // 尝试偏移1-3个位置
+            let offset = Math.floor(Math.random() * 3) + 1;
+            let newIndex = (randomIndex + offset) % allFeedItems.length;
+            nextItem = allFeedItems[newIndex];
+        }
+        
+        console.log('🔁 已到末尾，随机跳转到:', parseInt(nextItem.getAttribute('data-host-id')));
+    }
+    
+    if (nextItem) {
+        // 滚动到下一个视频
+        nextItem.scrollIntoView({ behavior: 'smooth' });
+        
+        setTimeout(() => {
+            const nextVideo = nextItem.querySelector('video');
+            if (nextVideo) {
+                nextVideo.muted = false;
+                nextVideo.play().catch(() => {});
+            }
+        }, 400);
+    }
+}
+
+function getVideoByHostId(hostId) {
+    const feedItem = document.querySelector(`.feed-item[data-host-id="${hostId}"]`);
+    return feedItem ? feedItem.querySelector('video') : null;
+}
+// ========== 进度条绑定 ==========
+function setupProgressBar(hostId, video) {
+    const progressFill = document.getElementById(`progressFill_${hostId}`);
+    const timeDisplay = document.getElementById(`timeDisplay_${hostId}`);
+    const progressBar = document.getElementById(`progressBar_${hostId}`);
+    
+    if (!progressFill || !timeDisplay) return;
+    
+    // 移除旧监听
+    video.removeEventListener('timeupdate', updateProgress);
+    video.removeEventListener('loadedmetadata', updateDuration);
+    
+    function updateProgress() {
+        if (video.duration) {
+            const percent = (video.currentTime / video.duration) * 100;
+            progressFill.style.width = `${percent}%`;
+        }
+        timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+    }
+    
+    function updateDuration() {
+        timeDisplay.textContent = `00:00 / ${formatTime(video.duration)}`;
+    }
+    
+    video.addEventListener('timeupdate', updateProgress);
+    video.addEventListener('loadedmetadata', updateDuration);
+    
+    // 点击进度条跳转
+    if (progressBar) {
+        progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            if (video.duration) {
+                video.currentTime = percent * video.duration;
+            }
+        });
+    }
+}
+
+// ========== 时间格式化 ==========
+function formatTime(seconds) {
+    if (!seconds || isNaN(seconds) || !isFinite(seconds)) return '00:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+    // ========== 个人主页（添加了私信按钮） ==========
+    function openProfile(host) {
+        const profilePage = document.getElementById('profilePage');
+        const content = document.getElementById('profileContent');
+        const liveTime = host.liveTime || getRandomLiveTime();
+        content.innerHTML = `
+            <div class="profile-header" style="background-image: url('${host.hostImg}'); ">
+                ${getAvatarHtml(host.avatar, 'profile-avatar')}
+                <div class="close-profile" id="closeProfileInnerBtn">✕ 关闭</div>
+            </div>
+            <div class="profile-info">
+                <div class="profile-name">${host.name}</div>
+                <div class="profile-fans"> ${host.fans || 0} 粉丝</div>
+                <div class="profile-bio">${host.personality || "暂无简介"} | ${host.shape }</div>
+                <div class="live-badge"> 直播时间：${liveTime}</div>
+                <div class="button-group">
+                   <button class="enter-live-btn" id="enterLiveFromProfile">
+    <img src="assets/icons/live.png" class="btn-icon" alt="直播"> 进入直播间
+</button>
+                    <button class="profile-msg-btn" id="msgFromProfile">
+    <img src="assets/icons/chat.png" class="btn-icon" alt="私信"> 私信
+</button>
+                </div>
+            </div>
+        <div style="padding: 0 20px;">
+    <h4 style="font-size: 24px;"> 作品 (${host.works?.length || 0})</h4>
+</div>
+            <div class="works-grid" id="worksGrid"></div>
+        `;
+        const grid = content.querySelector('#worksGrid');
+        if (host.works) {
+            host.works.forEach(work => {
+                const workDiv = document.createElement('div');
+                workDiv.className = 'work-item';
+                workDiv.innerHTML = `<img src="${work.coverImg}" alt="${work.title}"><div class="work-title">${work.title}</div>`;
+                workDiv.addEventListener('click', () => openWorkPlayer(host, work));
+                grid.appendChild(workDiv);
+            });
+        }
+        profilePage.classList.add('open');
+        
+        document.getElementById('closeProfileInnerBtn')?.addEventListener('click', () => profilePage.classList.remove('open'));
+        document.getElementById('enterLiveFromProfile')?.addEventListener('click', () => {
+            profilePage.classList.remove('open');
+            openLiveRoom(host);
+        });
+        // 新增：从主页打开私信
+        document.getElementById('msgFromProfile')?.addEventListener('click', () => {
+            profilePage.classList.remove('open');
+            openChatPopup(host);
+        });
+    }
+
+    // ========== 作品播放 ==========
+    function openWorkPlayer(host, work) {
+        currentWorkHost = host;
+        currentWork = work;
+        const player = document.getElementById('workPlayer');
+        const video = document.getElementById('playerVideo');
+        video.src = work.videoUrl;
+        video.load();
+        video.play().catch(e => console.log("播放失败"));
+        player.classList.add('open');
+    }
+
+    function closeWorkPlayer() {
+        const player = document.getElementById('workPlayer');
+        const video = document.getElementById('playerVideo');
+        video.pause();
+        video.src = "";
+        player.classList.remove('open');
+    }
+
+    function giftActionInWork(giftName) {
+        if (currentWorkHost && currentWork) {
+            showToast(`给 ${currentWorkHost.name} 的作品「${currentWork.title}」送出了「${giftName}」`);
+        }
+    }
+
+    // ========== 直播间（确保退出按钮正常） ==========
+    function openLiveRoom(host) {
+        currentLiveHost = host;
+        const modal = document.getElementById('liveModal');
+        const video = document.getElementById('liveVideo');
+        document.getElementById('liveHostName').innerText = host.name;
+        video.src = host.liveUrl || (host.works?.[0]?.videoUrl) || "https://www.w3schools.com/html/mov_bbb.mp4";
+        video.load();
+        video.play().catch(e => console.log("自动播放被阻止"));
+        modal.classList.add('open');
+    }
+
+    function closeLiveRoom() {
+        const modal = document.getElementById('liveModal');
+        const video = document.getElementById('liveVideo');
+        if (video) {
+            video.pause();
+            video.src = "";
+        }
+        if (modal) {
+            modal.classList.remove('open');
+        }
+        currentLiveHost = null;
+    }
+
+    function giftActionInLive(giftName) {
+        if (currentLiveHost) {
+            showToast(`给 ${currentLiveHost.name} 送出了「${giftName}」`);
+        }
+    }
+
+    // ========== 私信功能 ==========
+    function openMessageSidebar() {
+        renderMessageList();
+        document.getElementById('messageSidebar').classList.add('open');
+    }
+
+    function closeMessageSidebar() {
+        document.getElementById('messageSidebar').classList.remove('open');
+    }
+
+    function openChatPopup(host) {
+        currentChatHost = host;
+        if (unreadCount[host.name]) {
+            unreadCount[host.name] = 0;
+            renderMessageList();
+             updateUnreadBadge();  
+        }
+        if (!messageHistory[host.name]) messageHistory[host.name] = [];
+        document.getElementById('messageSidebar').classList.remove('open');
+        document.getElementById('chatSidebar').classList.add('open');
+        document.getElementById('chatHostName').innerHTML = host.name;
+        renderChatMessages();
+        const container = document.getElementById('chatMessages');
+    setTimeout(() => { container.scrollTop = container.scrollHeight; }, 50);
+        updateAffectionDisplay();
+    // 记录最后聊天时间
+        lastChatTime[host.name] = Date.now();
+        localStorage.setItem('lastChatTime', JSON.stringify(lastChatTime));
+    // 启动主动消息
+        startActiveMessaging(host);
+}
+
+    function closeChatSidebar() {
+        document.getElementById('chatSidebar').classList.remove('open');
+        openMessageSidebar();
+    }
+
+    function renderMessageList() {
+    const container = document.getElementById('messageList');
+    container.innerHTML = '';
+    hosts.forEach(host => {
+        const messages = messageHistory[host.name] || [];
+        const lastMsg = messages.length > 0 ? messages[messages.length - 1].text : "点击开始聊天";
+        const unread = unreadCount[host.name] || 0;
+        const unreadBadge = unread > 0 ? `<span class="unread-badge">${unread}</span>` : '';
+        const item = document.createElement('div');
+        item.className = 'message-item';
+        item.innerHTML = `
+            ${getAvatarHtml(host.avatar, 'message-avatar')}
+            <div class="message-preview">
+                <div class="message-name">${host.name} ${unreadBadge}</div>
+                <div class="message-text">${lastMsg.substring(0, 35)}</div>
+                <div class="affection-bar" style="margin-top:6px;">
+                    <div class="affection-fill" style="width: ${affection[host.name] || 0}%"></div>
+                </div>
+            </div>
+        `;
+        item.addEventListener('click', () => openChatPopup(host));
+        container.appendChild(item);
+    });
+}
+
+    function renderChatMessages() {
+        const container = document.getElementById('chatMessages');
+        const messages = messageHistory[currentChatHost?.name] || [];
+        container.innerHTML = '';
+        messages.forEach(msg => {
+            const bubble = document.createElement('div');
+            bubble.className = `message-bubble ${msg.sender === 'me' ? 'my-message' : 'ai-message'}`;
+            bubble.innerText = msg.text;
+            container.appendChild(bubble);
+        });
+        container.scrollTop = container.scrollHeight;
+    }
+//-----------------发送信息-------------
+async function sendMessage() {
+    if (isSending) {
+        showToast("请稍后再发~");
+        return;
+    }
+    
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text || !currentChatHost) return;
+    input.value = '';
+    
+    isSending = true;
+    const sendBtn = document.getElementById('sendBtn');
+    if (sendBtn) sendBtn.classList.add('disabled');
+    
+    // ✅ 添加我的消息到内存
+    if (!messageHistory[currentChatHost.name]) messageHistory[currentChatHost.name] = [];
+    messageHistory[currentChatHost.name].push({ sender: 'me', text: text });
+    
+    // ✅ 保存到后端
+    await saveChatsToServer(currentChatHost.name, messageHistory[currentChatHost.name]);
+    // 同时保存到 localStorage（备份）
+    localStorage.setItem(`messageHistory_${currentChatHost.name}`, JSON.stringify(messageHistory[currentChatHost.name]));
+    
+    renderChatMessages();
+    
+    // 更新最后聊天时间
+    lastChatTime[currentChatHost.name] = Date.now();
+    localStorage.setItem('lastChatTime', JSON.stringify(lastChatTime));
+    
+    // 显示正在输入
+    const typing = document.getElementById('typingIndicator');
+    if (typing) typing.style.display = 'block';
+    
+    // 调用AI（传入历史记录）
+    const reply = await getAIResponse(
+        currentChatHost.name,
+        currentChatHost.personality,
+        currentChatHost.shape,
+        currentChatHost.style,
+        text,
+        messageHistory[currentChatHost.name]
+    );
+    
+    if (typing) typing.style.display = 'none';
+    
+    // ✅ 保存AI回复到内存
+    messageHistory[currentChatHost.name].push({ sender: 'ai', text: reply });
+    
+    // ✅ 保存到后端
+    await saveChatsToServer(currentChatHost.name, messageHistory[currentChatHost.name]);
+    localStorage.setItem(`messageHistory_${currentChatHost.name}`, JSON.stringify(messageHistory[currentChatHost.name]));
+    
+    // 打字机效果
+    const tempBubble = document.createElement('div');
+    tempBubble.className = 'message-bubble ai-message';
+    document.getElementById('chatMessages').appendChild(tempBubble);
+    await typeMessage(tempBubble, reply, 25);
+    
+    // 保存到历史（已保存，无需重复）
+    // 增加好感度
+    const gain = Math.floor(Math.random() * 3) + 1;
+    addAffection(currentChatHost.name, gain);
+    
+    // ===== 主动消息触发检测 =====
+    const userMessage = text;
+    const hostName = currentChatHost.name;
+    if (shouldTriggerActiveMessage(hostName, userMessage)) {
+        scheduleActiveMessage(hostName, userMessage);
+        console.log(`🔔 触发主动消息: ${hostName} - "${userMessage}"`);
+    }
+    
+    isSending = false;
+    if (sendBtn) sendBtn.classList.remove('disabled');
+    updateUnreadBadge();
+}
+    function init() {
+    if (typeof hostsData !== 'undefined') {
+        hosts = hostsData;
+        loadAllChats();
+        
+        showAffairPanel();
+        
+        // 隐藏 Feed 流
+        const feed = document.getElementById('feedContainer');
+        if (feed) {
+            feed.style.display = 'none';
+            feed.style.visibility = 'hidden';
+        }
+        
+        // ❌ 删除 requestAnimationFrame 中的 renderFeed()
+        // 改为在点击推荐时渲染
+        
+    } else {
+        console.error("未找到 hostsData，请确保 data.js 正确加载");
+        showToast("未找到数据文件");
+        return;
+    }
+    
+    // 直播间礼物和关闭
+    const closeLiveBtn = document.getElementById('closeLiveBtn');
+    if (closeLiveBtn) {
+        const newCloseBtn = closeLiveBtn.cloneNode(true);
+        closeLiveBtn.parentNode.replaceChild(newCloseBtn, closeLiveBtn);
+        newCloseBtn.addEventListener('click', closeLiveRoom);
+    }
+    
+    document.getElementById('giftBar')?.addEventListener('click', (e) => {
+        const giftItem = e.target.closest('.gift-item');
+        if (giftItem && currentLiveHost) giftActionInLive(giftItem.getAttribute('data-gift') || "礼物");
+    });
+    
+    document.getElementById('closePlayerBtn')?.addEventListener('click', closeWorkPlayer);
+    document.getElementById('playerGiftBar')?.addEventListener('click', (e) => {
+        const giftItem = e.target.closest('.gift-item');
+        if (giftItem && currentWorkHost) giftActionInWork(giftItem.getAttribute('data-gift') || "礼物");
+    });
+
+    document.getElementById('msgNavBtn')?.addEventListener('click', openMessageSidebar);
+    document.getElementById('backToHomeFromMsgList')?.addEventListener('click', closeMessageSidebar);
+    document.getElementById('closeChatSidebar')?.addEventListener('click', closeChatSidebar);
+    document.getElementById('sendBtn')?.addEventListener('click', sendMessage);
+    document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+    
+    // ✅ 修改 homeNav 点击事件 - 在这里渲染 Feed
+    document.getElementById('homeNav')?.addEventListener('click', function() {
+        // 1. 导航栏激活状态切换
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        this.classList.add('active');
+
+        // 2. 首次点击推荐时渲染 Feed
+        if (!window._feedRendered) {
+            renderFeed();
+            window._feedRendered = true;
+            // 连播初始化（移到渲染之后）
+            setTimeout(function() {
+                document.querySelectorAll('.loop-btn').forEach(btn => {
+                    const hostId = parseInt(btn.getAttribute('data-host'));
+                    if (!loopStates[hostId]) {
+                        toggleLoop(hostId, btn);
+                    }
+                });
+                window._loopInitialized = true;
+                console.log('🔁 连播已初始化');
+            }, 300);
+        }
+
+        // 3. 显示 Feed 流
+        const feed = document.getElementById('feedContainer');
+        if (feed) {
+            feed.style.display = 'block';
+            feed.style.visibility = 'visible';
+        }
+
+        // 4. 隐藏事务面板
+        const panel = document.getElementById('affairPanel');
+        if (panel) {
+            panel.classList.remove('active');
+            panel.style.display = 'none';
+        }
+
+        // 5. 隐藏地图
+        const mapContainer = document.getElementById('mapContainer');
+        if (mapContainer) {
+            mapContainer.classList.remove('active');
+            mapContainer.style.display = 'none';
+        }
+
+        // 6. 关闭所有侧边栏和弹窗
+        document.getElementById('messageSidebar')?.classList.remove('open');
+        document.getElementById('chatSidebar')?.classList.remove('open');
+        document.getElementById('profilePage')?.classList.remove('open');
+        document.getElementById('workPlayer')?.classList.remove('open');
+        document.getElementById('liveModal')?.classList.remove('open');
+        currentLiveHost = null;
+    });
+    
+    document.getElementById('profileNav')?.addEventListener('click', () => {
+        showToast("个人主页功能开发中");
+    });
+    
+    updateUnreadBadge();
+    initMoreMenu('popupMoreMenu', 'popupMoreBtn', 'popupFileInput', 'popupMessages');
+    
+    document.querySelectorAll('.tab-item').forEach(tab => {
+        tab.addEventListener('click', () => {
+            switchMessageTab(tab.dataset.tab);
+        });
+    });
+    
+    document.getElementById('affairNav')?.addEventListener('click', showAffairPanel);
+    renderFriendList();
+    updateBadges();
+}
+// ========== 弹窗聊天功能 ==========
+let popupCurrentHost = null;
+
+// 打开弹窗
+function openChatPopup(host) {
+
+    if (unreadCount[host.name] && unreadCount[host.name] > 0) {
+        unreadCount[host.name] = 0;
+        updateUnreadBadge();      // 更新红点
+        renderMessageList();}      // 刷新消息列表（
+    popupCurrentHost = host;
+    document.getElementById('popupName').innerText = host.name;
+    renderPopupMessages();
+    document.getElementById('chatPopup').classList.add('open');
+    document.getElementById('chatOverlay').classList.add('open');
+    
+    // ✅ 新增：滚动到底部
+    setTimeout(() => {
+        const container = document.getElementById('popupMessages');
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
+    }, 100);
+}
+
+// 关闭弹窗
+function closeChatPopup() {
+    document.getElementById('chatPopup').classList.remove('open');
+    document.getElementById('chatOverlay').classList.remove('open');
+    popupCurrentHost = null;
+}
+
+// 渲染弹窗消息
+function renderPopupMessages() {
+    const container = document.getElementById('popupMessages');
+    if (!popupCurrentHost) return;
+    const messages = messageHistory[popupCurrentHost.name] || [];
+    container.innerHTML = '';
+    messages.forEach((msg, index) => {
+        const bubble = document.createElement('div');
+        bubble.className = `message-bubble ${msg.sender === 'me' ? 'my-message' : 'ai-message'}`;
+        
+        // 图片消息
+        if (msg.type === 'image' && msg.content) {
+            bubble.innerHTML = `
+                ${msg.text ? `<div style="margin-bottom:6px;">${msg.text}</div>` : ''}
+                <img src="${msg.content}" style="max-width:200px;max-height:200px;border-radius:8px;cursor:pointer;" onclick="openImageViewer('${msg.content}')">
+            `;
+        }
+        else if (msg.type === 'location' && msg.location) {
+    bubble.innerHTML = `
+        <div class="location-message">
+            <img src="assets/icons/locate.png" class="location-icon" alt="定位">
+            <span class="location-text">我的位置：${msg.location}</span>
+        </div>
+    `;
+}
+        else {
+            // 文字消息
+            const msgText = msg.text || msg.content || '';
+            const isAi = msg.sender === 'ai';
+            const msgId = 'msg_' + Date.now() + '_' + index;
+            
+            let html = `<div class="message-text-wrapper">
+                <div class="message-text-content" id="${msgId}">${msgText}</div>`;
+            
+            // AI 消息加语音按钮
+            if (isAi && msgText.length > 0) {
+                html += `<button class="voice-play-btn" onclick="speakMessage('${msgId}')">🔊</button>`;
+            }
+            
+            html += `</div>`;
+            bubble.innerHTML = html;
+        }
+        
+        container.appendChild(bubble);
+    });
+    container.scrollTop = container.scrollHeight;
+}
+
+// 发送消息
+async function sendPopupMessage() {
+    if (!popupCurrentHost) return;
+    
+    const input = document.getElementById('popupInput');
+    const text = input.value.trim();
+    
+    // 如果没有文字也没有待发送文件，不发送
+    if (!text && !pendingFile) return;
+    
+    const hostName = popupCurrentHost.name;
+    
+    if (!messageHistory[hostName]) messageHistory[hostName] = [];
+    
+       // ===== 如果有待发送的图片/视频 =====
+    if (pendingFile) {
+        const fileType = pendingFileType || 'image';
+        const fileData = pendingFile;
+        const fileTypeSaved = pendingFileType;
+        const userText = text || '';
+        
+        // 保存消息（图片/视频）
+        messageHistory[hostName].push({
+            sender: 'me',
+            type: fileType,
+            content: fileData,
+            text: userText || (fileType === 'image' ? '' : '')
+        });
+        
+        input.value = '';
+        removePendingFile();
+        renderPopupMessages();
+        
+        // 显示正在输入
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-indicator';
+        typingDiv.innerText = `正在查看${fileTypeSaved === 'image' ? '图片' : '视频'}...`;
+        document.getElementById('popupMessages').appendChild(typingDiv);
+        
+        // ===== 如果是图片，用 Agnes 识别 =====
+        let imageDescription = '';
+        if (fileTypeSaved === 'image') {
+            imageDescription = await analyzeImageWithAgnes(fileData);
+            console.log('📷 Agnes识别结果:', imageDescription);
+        }
+        
+        typingDiv.innerText = '对方正在输入...';
+        
+        // ===== 构建发给 DeepSeek 的消息 =====
+        let aiPrompt = '';
+        if (fileTypeSaved === 'image') {
+            aiPrompt = userText 
+                ? `用户说：${userText}，并且给你发了一张图片，图片内容是：${imageDescription || '一张图片'}，请根据图片内容回复`
+                : `用户给你发了一张图片，图片内容是：${imageDescription || '一张图片'}，请根据图片内容自然回复`;
+        } else {
+            aiPrompt = userText || `用户给你发了一个视频`;
+        }
+        
+        // ===== 调用 DeepSeek 生成回复 =====
+        const reply = await getAIResponse(
+            hostName,
+            popupCurrentHost.personality,
+            popupCurrentHost.shape,
+            popupCurrentHost.style,
+            aiPrompt,
+            messageHistory[hostName]
+        );
+        
+        typingDiv.remove();
+        
+        // 打字机效果
+        const tempBubble = document.createElement('div');
+        tempBubble.className = 'message-bubble ai-message';
+        document.getElementById('popupMessages').appendChild(tempBubble);
+        await typeMessageForPopup(tempBubble, reply, 25);
+        
+        // 保存到历史
+        messageHistory[hostName].push({ sender: 'ai', text: reply });
+        
+        // 增加好感度
+        const gain = Math.floor(Math.random() * 3) + 1;
+        addAffection(hostName, gain);
+        pendingFile = null;
+    pendingFileType = null;
+    // 如果有预览容器，也清空 UI
+    const container = document.getElementById('filePreviewContainer');
+    if (container) {
+        container.style.display = 'none';
+        container.innerHTML = '';
+    }
+        localStorage.setItem('messageHistory', JSON.stringify(messageHistory));
+        return;
+    }
+    
+    // ===== 普通文字消息 =====
+    messageHistory[hostName].push({ sender: 'me', text: text });
+    await saveChatsToServer(hostName, messageHistory[hostName]);
+localStorage.setItem(`messageHistory_${hostName}`, JSON.stringify(messageHistory[hostName]));
+    renderPopupMessages();
+    input.value = '';
+    
+    // 主动消息触发检测
+    const userMessage = text;
+    if (shouldTriggerActiveMessage(hostName, userMessage)) {
+        scheduleActiveMessage(hostName, userMessage);
+        console.log(`🔔 触发主动消息(弹窗): ${hostName} - "${userMessage}"`);
+    }
+    
+    // 更新时间
+    lastChatTime[hostName] = Date.now();
+    localStorage.setItem('lastChatTime', JSON.stringify(lastChatTime));
+    
+    // 显示正在输入
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'typing-indicator';
+    typingDiv.innerText = '对方正在输入...';
+    document.getElementById('popupMessages').appendChild(typingDiv);
+    
+    // 调用AI
+    const reply = await getAIResponse(
+        hostName,
+        popupCurrentHost.personality,
+        popupCurrentHost.shape,
+        popupCurrentHost.style,
+        text,
+        messageHistory[hostName]
+    );
+    
+    typingDiv.remove();
+    
+    // 打字机效果
+    const tempBubble = document.createElement('div');
+    tempBubble.className = 'message-bubble ai-message';
+    document.getElementById('popupMessages').appendChild(tempBubble);
+    await typeMessageForPopup(tempBubble, reply, 25);
+    
+    // 保存到历史
+   messageHistory[hostName].push({ sender: 'ai', text: reply });
+await saveChatsToServer(hostName, messageHistory[hostName]);
+localStorage.setItem(`messageHistory_${hostName}`, JSON.stringify(messageHistory[hostName]));
+    
+    // 增加好感度
+    const gain = Math.floor(Math.random() * 3) + 1;
+    addAffection(hostName, gain);
+    
+    localStorage.setItem('messageHistory', JSON.stringify(messageHistory));
+}
+
+
+// 弹窗专用的打字机效果
+async function typeMessageForPopup(element, text, speed = 25) {
+    element.innerHTML = '';
+    const container = document.getElementById('popupMessages');
+    
+    for (let i = 0; i < text.length; i++) {
+        element.innerHTML += text[i];
+        // ✅ 每打一个字就滚动到底部
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
+        await new Promise(resolve => setTimeout(resolve, speed));
+    }
+    // ✅ 最后再滚一次，确保到底
+    if (container) {
+        container.scrollTop = container.scrollHeight;
+}
+ }
+//-- 绑定弹窗事件-----//
+document.getElementById('closePopupBtn')?.addEventListener('click', closeChatPopup);
+document.getElementById('chatOverlay')?.addEventListener('click', closeChatPopup);
+document.getElementById('popupSendBtn')?.addEventListener('click', sendPopupMessage);
+document.getElementById('popupInput')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendPopupMessage();
+});
+    window.onload = init;
+</script>
+<script>
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            navItems.forEach(nav => nav.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    // ===== 点赞后主播发消息 =====
+async function sendLikeMessage(host, work) {
+    try {
+        const hostName = host.name;
+        const affValue = affection[hostName] || 0;
+        const affLevel = getAffectionLevel(hostName);
+        
+        // 随机延迟 3-8 秒
+        const delay = 3000 + Math.random() * 5000;
+        console.log(`👍 点赞触发消息 ${hostName}，将在 ${Math.round(delay/1000)} 秒后发送`);
+        
+        setTimeout(async () => {
+            try {
+                // 构建系统提示
+                let systemPrompt = `你是${hostName}，性格：${host.personality || '温柔可爱'}。
+用户刚刚给你的作品「${work.title || '视频'}」点了赞。
+亲密度：${affValue}/100（${affLevel}）
+
+请根据以下情况发一条消息：
+1. 感谢用户的点赞（核心）
+2. 结合视频内容：${work.desc || '无描述'}
+3. 根据亲密度调整语气：
+   - 低亲密度(30-50)：礼貌感谢
+   - 中亲密度(50-75)：热情互动
+   - 高亲密度(75+)：亲密撒娇
+4. 回复 20-40 字，自然亲切。`;
+
+                const response = await fetch(DEEPSEEK_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: AI_MODEL,
+                        messages: [
+                            { role: "system", content: systemPrompt },
+                            { role: "user", content: `用户点赞了你的作品，发条消息回复他` }
+                        ],
+                        temperature: 0.9,
+                        max_tokens: 100
+                    })
+                });
+                
+                const data = await response.json();
+                let reply = data.choices?.[0]?.message?.content;
+                
+                if (!reply) {
+                    // AI 失败时用备用消息
+                    const fallbackMessages = [
+                        `谢谢点赞~！`,
+                        `感谢喜欢我的作品~😊`,
+                        `看来你也喜欢这个视频呢~`,
+                        `谢谢支持，我会继续加油的！`,
+                        `你的点赞是对我最大的鼓励~`
+                    ];
+                    reply = fallbackMessages[Math.floor(Math.random() * fallbackMessages.length)];
+                }
+                
+                // 保存到聊天记录
+                if (!messageHistory[hostName]) messageHistory[hostName] = [];
+                messageHistory[hostName].push({ sender: 'ai', text: reply });
+                
+                // 未读计数 +1
+                unreadCount[hostName] = (unreadCount[hostName] || 0) + 1;
+                updateUnreadBadge();
+                
+                // 保存
+                localStorage.setItem('messageHistory', JSON.stringify(messageHistory));
+                renderMessageList();
+                
+                showToast(`${hostName} 给你发消息了`, 'message_unread.png');
+                console.log(`点赞消息已发送: ${hostName} -> ${reply}`);
+                
+            } catch (error) {
+                console.error('点赞消息发送失败:', error);
+            }
+        }, delay);
+        
+    } catch (error) {
+        console.error('sendLikeMessage 错误:', error);
+    }
+}
+    // ================= 主播主动发消息系统 =================
+let activeMessageTimers = {};
+
+// 关键词配置（触发主动消息的关键词）
+const TRIGGER_KEYWORDS = [
+    "明天", "下次", "等会", "等会儿", "待会", "待会儿",
+    "一会", "一会儿", "稍后", "之后", "过会", "过一会儿",
+    "等一下", "等一等", "回头", "晚点", "改天","秒后","分钟后"
+];
+
+// 主动消息池（根据亲密度不同）
+function getActiveMessages(affectionLevel) {
+    const baseMessages = [
+        "你不是说等会要找我吗？",
+        "说好的找我",
+        "等你半天了😢",
+        "你刚才说等会要给我看东西，我还在等",
+        "从你说要找我到现在，我感觉过了一个世纪了",
+        "过那么久你都没回，是不是在忙呀？",
+        "你说的等会儿，是等多久",
+    ];
+    
+    // 亲密度越高，消息越亲密
+    if (affectionLevel >= 80) {
+        return [
+            ...baseMessages,
+            "说好的等会陪我，我可记着",
+            
+        ];
+    } else if (affectionLevel >= 50) {
+        return [
+            ...baseMessages,
+            "你说等会找我啥时候？",
+            "还在等你呢，你不会忘了吧？",
+            "说好的事情可不能反悔",
+        ];
+    } else {
+        return baseMessages;
+    }
+}
+
+// ====检测是否包含触发关键词
+function hasTriggerKeyword(text) {
+    // 从后往前检查（因为一般是后半句）
+    const lastHalf = text.length > 20 ? text.slice(-20) : text;
+    // 检查整句和后半句
+    const fullText = text.toLowerCase();
+    const lastHalfLower = lastHalf.toLowerCase();
+    
+    for (const keyword of TRIGGER_KEYWORDS) {
+        if (fullText.includes(keyword) || lastHalfLower.includes(keyword)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// =======判断是否应该触发主动消息
+function shouldTriggerActiveMessage(hostName, userMessage) {
+    const affValue = affection[hostName] || 0;
+    
+    // 条件1：亲密度 >= 30
+    if (affValue < 30) return false;
+    
+    // 条件2：包含触发关键词
+    if (!hasTriggerKeyword(userMessage)) return false;
+    
+    return true;
+}
+
+// ========调度主动消息
+function scheduleActiveMessage(hostName, userMessage, chatHistory) {
+    // 如果已经有定时器，先取消
+    if (activeMessageTimers[hostName]) {
+        clearTimeout(activeMessageTimers[hostName]);
+        delete activeMessageTimers[hostName];
+    }
+    
+    // 随机延迟时间（30秒 - 2分钟）
+    const delay = 30000 + Math.random() * 90000; // 30s ~ 120s
+    
+    // 记录触发上下文
+    const triggerContext = {
+        userMessage: userMessage,
+        timestamp: Date.now(),
+       
+    };
+    localStorage.setItem(`trigger_${hostName}`, JSON.stringify(triggerContext));
+    
+    console.log(`⏰ 已安排主动消息 ${hostName}，将在 ${Math.round(delay/1000)} 秒后发送`);
+    
+    activeMessageTimers[hostName] = setTimeout(async () => {
+      
+        // 检查是否已经发送过（防止重复）
+        const triggerKey = `trigger_${hostName}`;
+        const savedTrigger = localStorage.getItem(triggerKey);
+        if (savedTrigger) {
+            const data = JSON.parse(savedTrigger);
+            // 如果超过10分钟了，就不再发送
+            if (Date.now() - data.timestamp > 600000) {
+                localStorage.removeItem(triggerKey);
+                return;
+            }
+        }
+        
+        await sendActiveMessage(hostName, userMessage);
+        localStorage.removeItem(triggerKey);
+        delete activeMessageTimers[hostName];
+    }, delay);
+}
+
+//========= 发送主动消息
+async function sendActiveMessage(hostName, userMessage) {
+    try {
+        const host = hosts.find(h => h.name === hostName);
+        if (!host) return;
+        
+        const affValue = affection[hostName] || 0;
+        const affLevel = getAffectionLevel(hostName);
+        const messages = getActiveMessages(affValue);
+        const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+        
+        // 生成上下文相关的回复（包含用户刚才说的话）
+        let contextPrompt = `用户刚才说：${userMessage}。`;
+        
+        let systemPrompt = `你是${hostName}，性格：${host.personality || '温柔可爱'}。
+
+${contextPrompt}
+- 用户说"等会"或"明天"之类的词，暗示了要再次找你。
+- 用户现在不在线了（或在忙），你现在是主动发消息给对方。
+- 你的消息要自然。
+- 亲密度：${affValue}/100（${affLevel}）
+- 根据亲密度调整语气：好感度越高越亲密。
+- 回复30-50字，温柔、撩人、自然。
+
+示例：
+- "你说等会要找我"
+- "你刚说要给我看东西的，别忘了"`;
+
+        const response = await fetch(DEEPSEEK_API_URL, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: AI_MODEL,
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: `发一条主动消息给用户` }
+                ],
+                temperature: 0.9,
+                max_tokens: 150
+            })
+        });
+        
+        const data = await response.json();
+        let reply = data.choices?.[0]?.message?.content || randomMessage;
+        
+        
+        
+        // 保存到聊天记录
+        if (!messageHistory[hostName]) messageHistory[hostName] = [];
+        messageHistory[hostName].push({ sender: 'ai', text: reply });
+        
+        // 显示通知
+        if (currentChatHost && currentChatHost.name === hostName) {
+            // 如果用户正在聊天，直接显示
+            renderChatMessages();
+            showToast(`${hostName} 给你发消息了`, 'message_unread.png');
+        } else {
+           // 不在聊天中，显示更明显的通知
+showToast(`${hostName} 给你发消息了：${reply.slice(0, 30)}...`, 'message_unread.png');
+            // 更新未读计数
+            unreadCount[hostName] = (unreadCount[hostName] || 0) + 1;
+            updateUnreadBadge();
+        }
+        
+        localStorage.setItem('messageHistory', JSON.stringify(messageHistory));
+        renderMessageList();
+        
+        console.log(`✅ 主动消息已发送: ${hostName} -> ${reply}`);
+        
+    } catch (error) {
+        console.error('主动消息发送失败:', error);
+    }
+}
+
+// 取消所有定时器（页面关闭时清理）
+function clearAllActiveTimers() {
+    for (const [hostName, timer] of Object.entries(activeMessageTimers)) {
+        clearTimeout(timer);
+        localStorage.removeItem(`trigger_${hostName}`);
+    }
+    activeMessageTimers = {};
+}
+function updateUnreadBadge() {
+    const dot = document.getElementById('unreadDot');
+    if (!dot) return;
+    let total = 0;
+    for (let name in unreadCount) {
+        total += (unreadCount[name] || 0);
+    }
+    if (total > 0) {
+        dot.style.display = 'block';
+    } else {
+        dot.style.display = 'none';
+    }
+    
+    // 更新聊天tab徽章
+    const chatBadge = document.getElementById('chatUnreadBadge');
+    if (chatBadge) {
+        if (total > 0) {
+            chatBadge.style.display = 'inline';
+            chatBadge.textContent = total;
+        } else {
+            chatBadge.style.display = 'none';
+        }
+    }
+    
+    // 更新好友数量
+    const friendBadge = document.getElementById('friendCountBadge');
+    if (friendBadge) {
+        friendBadge.textContent = getFriends().length;
+    }
+}
+// ================= AI 自动记忆系统 =================
+
+// 记忆存储
+function getMemory(hostName) {
+    const data = localStorage.getItem(`memory_${hostName}`);
+    return data ? JSON.parse(data) : {
+        userInfo: {},        // 用户个人信息
+        preferences: {},     // 用户喜好
+        relationship: [],    // 关系进展
+        events: [],          // 发生过的事
+        lastUpdate: Date.now()
+    };
+}
+
+function saveMemory(hostName, memory) {
+    memory.lastUpdate = Date.now();
+    localStorage.setItem(`memory_${hostName}`, JSON.stringify(memory));
+}
+
+// 提取记忆（AI 提取关键信息）
+function extractMemories(userMessage, aiReply, currentMemory) {
+    const newMemory = JSON.parse(JSON.stringify(currentMemory));
+    let hasNewInfo = false;
+    
+    // ===== 提取用户信息 =====
+    const nameMatch = userMessage.match(/我叫(.{1,6})[，。,\s]?/);
+    if (nameMatch && !newMemory.userInfo.name) {
+        newMemory.userInfo.name = nameMatch[1];
+        hasNewInfo = true;
+    }
+    
+    // 年龄
+    const ageMatch = userMessage.match(/(\d{1,3})\s*岁/);
+    if (ageMatch && !newMemory.userInfo.age) {
+        newMemory.userInfo.age = parseInt(ageMatch[1]);
+        hasNewInfo = true;
+    }
+    
+    // 城市/地方
+    const cityMatch = userMessage.match(/(?:在|来自|住在)(.{1,4})(?:市|区|县|城)/);
+    if (cityMatch && !newMemory.userInfo.city) {
+        newMemory.userInfo.city = cityMatch[1];
+        hasNewInfo = true;
+    }
+    
+    // ===== 提取喜好 =====
+    const likePatterns = [
+        /我喜欢(.{1,10})/,
+        /我爱(.{1,10})/,
+        /我特别(.{1,10})/,
+        /我最喜欢的.{0,5}(.{1,10})/
+    ];
+    for (const pattern of likePatterns) {
+        const match = userMessage.match(pattern);
+        if (match) {
+            const like = match[1].trim();
+            if (like.length > 1 && !newMemory.preferences.likes?.includes(like)) {
+                if (!newMemory.preferences.likes) newMemory.preferences.likes = [];
+                newMemory.preferences.likes.push(like);
+                hasNewInfo = true;
+            }
+        }
+    }
+    
+    // ===== 提取讨厌/不喜欢 =====
+    const hateMatch = userMessage.match(/(?:我讨厌|我不喜欢|我反感)(.{1,10})/);
+    if (hateMatch) {
+        const hate = hateMatch[1].trim();
+        if (!newMemory.preferences.dislikes) newMemory.preferences.dislikes = [];
+        if (!newMemory.preferences.dislikes.includes(hate)) {
+            newMemory.preferences.dislikes.push(hate);
+            hasNewInfo = true;
+        }
+    }
+    
+    // ===== 提取重要事件 =====
+    const eventPatterns = [
+        /(?:今天|昨天|明天|上周|这周)(.{1,15})(?:了|过)/,
+        /我(?:刚|正在|准备)(.{1,15})/
+    ];
+    for (const pattern of eventPatterns) {
+        const match = userMessage.match(pattern);
+        if (match) {
+            const event = match[1].trim();
+            if (event.length > 2) {
+                const eventEntry = {
+                    text: event,
+                    timestamp: Date.now()
+                };
+                // 避免重复
+                const isDuplicate = newMemory.events.some(e => 
+                    e.text === eventEntry.text && 
+                    (Date.now() - e.timestamp) < 60000
+                );
+                if (!isDuplicate) {
+                    newMemory.events.push(eventEntry);
+                    hasNewInfo = true;
+                }
+                // 只保留最近20条
+                if (newMemory.events.length > 40) {
+                    newMemory.events = newMemory.events.slice(-40);
+                }
+            }
+        }
+    }
+    
+    return { memory: newMemory, hasNewInfo };
+}
+
+// 生成记忆摘要（用于系统提示）
+function generateMemorySummary(hostName) {
+    const memory = getMemory(hostName);
+    let summary = '';
+    
+    // 用户信息
+    if (memory.userInfo.name) {
+        summary += `用户的名字是：${memory.userInfo.name}。`;
+    }
+    if (memory.userInfo.age) {
+        summary += `用户${memory.userInfo.age}岁。`;
+    }
+    if (memory.userInfo.city) {
+        summary += `用户在${memory.userInfo.city}。`;
+    }
+    
+    // 喜好
+    if (memory.preferences.likes && memory.preferences.likes.length > 0) {
+        summary += `用户喜欢：${memory.preferences.likes.join('、')}。`;
+    }
+    if (memory.preferences.dislikes && memory.preferences.dislikes.length > 0) {
+        summary += `用户不喜欢：${memory.preferences.dislikes.join('、')}。`;
+    }
+    
+    // 最近的对话记忆（最近5条）
+    if (memory.events && memory.events.length > 0) {
+        const recentEvents = memory.events.slice(-20);
+        summary += `最近聊到的事情：${recentEvents.map(e => e.text).join('、')}。`;
+    }
+    
+    return summary;
+}
+// ===== 扩展菜单功能 =====
+
+// 待发送的文件
+let pendingFile = null;
+let pendingFileType = null; // 'image' 或 'video'
+
+// 初始化扩展菜单
+function initMoreMenu(menuId, btnId, fileInputId, popupMessagesId) {
+    const menu = document.getElementById(menuId);
+    const btn = document.getElementById(btnId);
+    const fileInput = document.getElementById(fileInputId);
+    
+    if (!menu || !btn || !fileInput) return;
+    
+    // 点击按钮切换菜单
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        menu.classList.toggle('open');
+    });
+    
+    // 菜单项点击
+    menu.querySelectorAll('.more-menu-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const type = this.getAttribute('data-type');
+            menu.classList.remove('open');
+            
+            switch(type) {
+                case 'image':
+                    fileInput.accept = 'image/*';
+                    fileInput.click();
+                    break;
+                case 'video':
+                    fileInput.accept = 'video/*';
+                    fileInput.click();
+                    break;
+                case 'gift':
+                    showGiftSelector();
+                    break;
+                case 'location':
+                sendLocation();
+                    break;
+                default:
+                    showToast('功能开发中');
+            }
+        });
+    });
+    
+    // 文件选择
+    fileInput.addEventListener('change', function(e) {
+        const file = this.files[0];
+        if (!file) return;
+        
+        const isImage = file.type.startsWith('image/');
+        const isVideo = file.type.startsWith('video/');
+        
+        if (isImage) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                pendingFile = event.target.result;
+                pendingFileType = 'image';
+                showFilePreview(pendingFile, 'image', popupMessagesId);
+            };
+            reader.readAsDataURL(file);
+        } else if (isVideo) {
+            const url = URL.createObjectURL(file);
+            pendingFile = url;
+            pendingFileType = 'video';
+            showFilePreview(pendingFile, 'video', popupMessagesId);
+        }
+        
+        this.value = '';
+    });
+    
+    // 点击外部关闭菜单
+    document.addEventListener('click', function(e) {
+        if (!menu.contains(e.target) && !btn.contains(e.target)) {
+            menu.classList.remove('open');
+        }
+    });
+}
+
+// 显示文件预览
+function showFilePreview(data, type, containerId) {
+    // 在输入框上方显示预览
+    let previewContainer = document.getElementById('filePreviewContainer');
+    if (!previewContainer) {
+        previewContainer = document.createElement('div');
+        previewContainer.id = 'filePreviewContainer';
+        previewContainer.className = 'file-preview-container';
+        const inputArea = document.querySelector('.chat-popup-input-area') || document.querySelector('.chat-input-area');
+        if (inputArea) {
+            inputArea.parentNode.insertBefore(previewContainer, inputArea);
+        }
+    }
+    
+    // 检查是否已存在相同文件
+    const existingItems = previewContainer.querySelectorAll('.file-preview-item');
+    for (const item of existingItems) {
+        const img = item.querySelector('img');
+        const video = item.querySelector('video');
+        if (img && img.src === data) return;
+        if (video && video.src === data) return;
+    }
+    
+    // 创建新元素，而不是覆盖
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'file-preview-item';
+    
+    if (type === 'image') {
+        itemDiv.innerHTML = `
+           <img src="${data}" alt="图片" onclick="openImageViewer('${data}')" style="cursor:pointer;">
+            <button class="file-preview-remove" onclick="removePendingFile()">✕</button>
+            <span class="file-preview-label">图片</span>
+        `;
+    } else if (type === 'video') {
+        itemDiv.innerHTML = `
+            <video src="${data}" muted></video>
+            <button class="file-preview-remove" onclick="removePendingFile()">✕</button>
+            <span class="file-preview-label">视频</span>
+        `;
+    }
+    
+    previewContainer.appendChild(itemDiv);  // 追加到容器
+    previewContainer.style.display = 'flex';
+    previewContainer.classList.add('show');
+}
+
+// 移除待发送文件
+function removePendingFile() {
+    pendingFile = null;
+    pendingFileType = null;
+    const container = document.getElementById('filePreviewContainer');
+    if (container) {
+        container.style.display = 'none';
+        container.innerHTML = '';
+    }
+}
+
+// 选择礼物（简单实现）
+function showGiftSelector() {
+    const gifts = ['🌹 玫瑰', '🚀 火箭', '🎂 蛋糕', '💎 钻石', '👑 皇冠'];
+    const giftList = gifts.map((g, i) => `${i+1}. ${g}`).join('\n');
+    showToast(`🎁 选择礼物：\n${giftList}`);
+    // 可以扩展成弹窗选择
+    }
+    // ===== Agnes 图片识别（使用 agnes-2.0-flash） =====
+async function analyzeImageWithAgnes(imageData) {
+    // 去掉 base64 前缀，保留纯数据
+    const base64Data = imageData.split(',')[1] || imageData;
+    
+    // Agnes 的 API 地址和配置
+    const AGNES_API_URL = "https://apihub.agnes-ai.com/v1/chat/completions";
+    const AGNES_MODEL = "agnes-2.0-flash";
+    const AGNES_API_KEY = "在此处输入你的agnesapi"; 
+    
+    try {
+        const response = await fetch(AGNES_API_URL, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${AGNES_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: AGNES_MODEL,
+                messages: [
+                    {
+                        role: "system",
+                        content: "你是一个图片描述助手。请用中文描述这张图片的内容，50字即可，描述图片的特点，内容，什么场景、人物或物体等等可以自己判断。只输出描述，不要加其他内容。"
+                    },
+                    {
+                        role: "user",
+                        content: [
+                            {
+                                type: "image_url",
+                                image_url: { 
+                                    url: `data:image/jpeg;base64,${base64Data}` 
+                                }
+                            }
+                        ]
+                    }
+                ],
+                max_tokens: 100
+            })
+        });
+        
+        const data = await response.json();
+        console.log('📷 Agnes 识别响应:', data);
+        
+        const description = data?.choices?.[0]?.message?.content;
+        return description || '一张图片';
+        
+    } catch (error) {
+        console.error('❌ Agnes 识别失败:', error);
+        return '一张图片';
+    }
+}
+// ============================================================
+// 微信风格语音输入
+// ============================================================
+
+// === 豆包语音配置（替换成你的） ===
+const VOLC_ACCESS_KEY = "你的豆包语音相关";
+const VOLC_SECRET_KEY = "豆包secretkey";
+const VOLC_APP_ID = "豆包语音appid";
+
+let volcToken = null;
+let tokenExpireTime = 0;
+
+let isVoiceMode = false;
+let isPressing = false;
+let isRecording = false;
+let mediaRecorder = null;
+let audioChunks = [];
+let pressTimer = null;
+let pressStartTime = 0;
+let streamRef = null;
+let volumeAnimId = null;
+let volumeCtx = null;
+let volumeAnalyser = null;
+
+// ============================================================
+// 1. 切换语音/文字模式
+// ============================================================
+document.getElementById('voiceModeBtn')?.addEventListener('click', function(e) {
+    e.stopPropagation();
+    isVoiceMode = !isVoiceMode;
+    
+    const inputArea = document.querySelector('.chat-popup-input-area');
+    const input = document.getElementById('popupInput');
+    const pressBar = document.getElementById('voicePressBar');
+    
+    if (isVoiceMode) {
+        inputArea.classList.add('voice-mode');
+        this.classList.add('active');
+        input.blur();
+        showToast('🎤 按住说话');
+    } else {
+        inputArea.classList.remove('voice-mode');
+        this.classList.remove('active');
+        if (isRecording) {
+            cancelRecording();
+        }
+        showToast('⌨️ 文字模式');
+    }
+});
+
+// ============================================================
+// 2. 获取豆包 Token
+// ============================================================
+async function getVolcToken() {
+    if (volcToken && Date.now() < tokenExpireTime - 300000) {
+        return volcToken;
+    }
+    
+    try {
+        const response = await fetch('https://open.volcengine.com/api/auth/v2/access_token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                access_key: VOLC_ACCESS_KEY,
+                secret_key: VOLC_SECRET_KEY
+            })
+        });
+        
+        const result = await response.json();
+        if (result.data && result.data.access_token) {
+            volcToken = result.data.access_token;
+            tokenExpireTime = Date.now() + (result.data.expires_in || 86400) * 1000;
+            return volcToken;
+        }
+        return null;
+    } catch (error) {
+        console.error('Token获取错误:', error);
+        return null;
+    }
+}
+
+// ============================================================
+// 3. 音频转 PCM
+// ============================================================
+async function audioToPCM(audioBlob) {
+    const arrayBuffer = await audioBlob.arrayBuffer();
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    
+    const sampleRate = 16000;
+    const duration = audioBuffer.duration;
+    const samples = Math.floor(duration * sampleRate);
+    const pcmData = new Int16Array(samples);
+    const sourceData = audioBuffer.getChannelData(0);
+    
+    for (let i = 0; i < samples; i++) {
+        const index = Math.floor(i * audioBuffer.sampleRate / sampleRate);
+        const value = sourceData[index] || 0;
+        pcmData[i] = Math.max(-32768, Math.min(32767, Math.round(value * 32767)));
+    }
+    
+    const bytes = new Uint8Array(pcmData.buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
+// ============================================================
+// 4. 语音识别（豆包 ASR）
+// ============================================================
+async function recognizeSpeech(audioBlob) {
+    try {
+        const token = await getVolcToken();
+        if (!token) {
+            return fallbackRecognize();
+        }
+        
+        const base64Audio = await audioToPCM(audioBlob);
+        
+        const response = await fetch('https://openspeech.bytedance.com/api/v1/asr', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                appid: VOLC_APP_ID,
+                audio_format: 'pcm',
+                sample_rate: 16000,
+                bits: 16,
+                channel: 1,
+                speech: base64Audio
+            })
+        });
+        
+        const result = await response.json();
+        if (result.code === 0 && result.data && result.data.text) {
+            return result.data.text;
+        } else {
+            console.error('ASR错误:', result);
+            return null;
+        }
+    } catch (error) {
+        console.error('ASR异常:', error);
+        return fallbackRecognize();
+    }
+}
+
+// 降级：浏览器语音识别
+function fallbackRecognize() {
+    return new Promise((resolve) => {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            resolve(null);
+            return;
+        }
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'zh-CN';
+        recognition.continuous = false;
+        
+        recognition.onresult = function(event) {
+            const result = event.results[event.results.length - 1];
+            if (result.isFinal) {
+                resolve(result[0].transcript);
+            }
+        };
+        recognition.onerror = function() {
+            resolve(null);
+        };
+        recognition.start();
+    });
+}
+
+// ============================================================
+// 5. 按压条事件
+// ============================================================
+const pressBar = document.getElementById('voicePressBar');
+
+// 鼠标按下
+pressBar?.addEventListener('mousedown', function(e) {
+    e.preventDefault();
+    if (!isVoiceMode || isPressing) return;
+    isPressing = true;
+    pressStartTime = Date.now();
+    
+    this.classList.add('pressing');
+    this.querySelector('.voice-press-hint').textContent = '松开 发送';
+    
+    if (navigator.vibrate) navigator.vibrate(10);
+    
+    pressTimer = setTimeout(() => {
+        if (isPressing) {
+            startRecording(this);
+        }
+    }, 150);
+});
+
+// 鼠标松开
+document.addEventListener('mouseup', function(e) {
+    if (!isPressing || !isVoiceMode) return;
+    isPressing = false;
+    
+    clearTimeout(pressTimer);
+    
+    const bar = document.getElementById('voicePressBar');
+    bar.classList.remove('pressing');
+    bar.querySelector('.voice-press-hint').textContent = '按住 说话';
+    
+    const duration = (Date.now() - pressStartTime) / 1000;
+    if (duration >= 0.5 && isRecording) {
+        stopRecordingAndSend();
+    } else if (isRecording) {
+        cancelRecording();
+        showToast('⏱ 说话时间太短');
+    }
+});
+
+// 鼠标移出区域（取消）
+pressBar?.addEventListener('mouseleave', function(e) {
+    if (isPressing && isVoiceMode) {
+        const related = e.relatedTarget;
+        if (!this.contains(related)) {
+            isPressing = false;
+            clearTimeout(pressTimer);
+            this.classList.remove('pressing');
+            this.querySelector('.voice-press-hint').textContent = '按住 说话';
+            cancelRecording();
+            showToast('🗑 已取消');
+        }
+    }
+});
+
+// ============================================================
+// 6. 录音核心
+// ============================================================
+function startRecording(element) {
+    if (isRecording) return;
+    
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            streamRef = stream;
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+            
+            mediaRecorder.start();
+            isRecording = true;
+            
+            element.classList.add('recording');
+            element.querySelector('.voice-press-hint').textContent = '🎤 录音中...';
+            
+            document.getElementById('recordingStatus').innerText = '🎤 录音中...';
+            document.getElementById('recordingStatus').classList.add('show');
+            
+            startVolumeIndicator(stream, element);
+        })
+        .catch(err => {
+            console.error('麦克风错误:', err);
+            showToast('请允许麦克风权限');
+            isPressing = false;
+            element.classList.remove('pressing');
+            element.querySelector('.voice-press-hint').textContent = '按住 说话';
+        });
+}
+
+function stopRecordingAndSend() {
+    if (!isRecording) return;
+    isRecording = false;
+    
+    if (mediaRecorder) {
+        mediaRecorder.stop();
+        mediaRecorder = null;
+    }
+    
+    if (streamRef) {
+        streamRef.getTracks().forEach(track => track.stop());
+        streamRef = null;
+    }
+    
+    const bar = document.getElementById('voicePressBar');
+    bar.classList.remove('recording');
+    bar.querySelector('.voice-press-hint').textContent = '处理中...';
+    document.getElementById('recordingStatus').classList.remove('show');
+    
+    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+    processVoice(audioBlob);
+}
+
+function cancelRecording() {
+    if (isRecording) {
+        isRecording = false;
+        if (mediaRecorder) {
+            mediaRecorder.stop();
+            mediaRecorder = null;
+        }
+        if (streamRef) {
+            streamRef.getTracks().forEach(track => track.stop());
+            streamRef = null;
+        }
+    }
+    const bar = document.getElementById('voicePressBar');
+    bar.classList.remove('recording');
+    bar.querySelector('.voice-press-hint').textContent = '按住 说话';
+    document.getElementById('recordingStatus').classList.remove('show');
+    audioChunks = [];
+    if (volumeAnimId) {
+        cancelAnimationFrame(volumeAnimId);
+        volumeAnimId = null;
+    }
+}
+
+// ============================================================
+// 7. 音量指示
+// ============================================================
+function startVolumeIndicator(stream, element) {
+    if (volumeCtx) {
+        volumeCtx.close();
+        volumeCtx = null;
+    }
+    
+    volumeCtx = new (window.AudioContext || window.webkitAudioContext)();
+    volumeAnalyser = volumeCtx.createAnalyser();
+    const source = volumeCtx.createMediaStreamSource(stream);
+    source.connect(volumeAnalyser);
+    volumeAnalyser.fftSize = 32;
+    
+    const dataArray = new Uint8Array(volumeAnalyser.frequencyBinCount);
+    const levelBar = element.querySelector('.voice-press-level');
+    
+    function updateVolume() {
+        if (!isRecording) {
+            levelBar.style.width = '0%';
+            return;
+        }
+        volumeAnalyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i];
+        }
+        const avg = sum / dataArray.length;
+        const percent = Math.min(100, (avg / 128) * 100);
+        levelBar.style.width = percent + '%';
+        
+        if (isRecording) {
+            volumeAnimId = requestAnimationFrame(updateVolume);
+        } else {
+            levelBar.style.width = '0%';
+        }
+    }
+    updateVolume();
+}
+
+// ============================================================
+// 8. 处理语音（识别 + 发送）
+// ============================================================
+async function processVoice(audioBlob) {
+    showToast('🔍 识别中...');
+    document.getElementById('recordingStatus').innerText = '🔍 识别中...';
+    document.getElementById('recordingStatus').classList.add('show');
+    
+    const text = await recognizeSpeech(audioBlob);
+    
+    const bar = document.getElementById('voicePressBar');
+    bar.querySelector('.voice-press-hint').textContent = '按住 说话';
+    document.getElementById('recordingStatus').classList.remove('show');
+    
+    if (text && text.length > 0) {
+        document.getElementById('popupInput').value = text;
+        showToast('✅ ' + text);
+        setTimeout(() => sendPopupMessage(), 200);
+    } else {
+        showToast('❌ 识别失败，请重试');
+    }
+}
+// ============================================================
+// 语音播报（豆包 TTS）
+// ============================================================
+
+let currentAudio = null;
+let currentBtn = null;
+
+async function speakMessage(msgId) {
+    const textEl = document.getElementById(msgId);
+    if (!textEl) return;
+    const text = textEl.innerText.trim();
+    if (!text) return;
+    
+    const btn = textEl.parentElement.querySelector('.voice-play-btn');
+    if (!btn) return;
+    
+    // 如果正在播放，停止
+    if (currentAudio && !currentAudio.paused) {
+        currentAudio.pause();
+        currentAudio = null;
+        if (currentBtn) {
+            currentBtn.classList.remove('playing');
+            currentBtn.textContent = '🔊';
+            currentBtn = null;
+        }
+        if (currentBtn === btn) return;
+    }
+    
+    // 获取豆包 Token
+    const token = await getVolcToken();
+    if (!token) {
+        showToast('语音服务连接失败');
+        return;
+    }
+    
+    try {
+        const response = await fetch('https://openspeech.bytedance.com/api/v1/tts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                appid: VOLC_APP_ID,
+                text: text,
+                voice_type: 'zh_female_1',
+                speed: 1.0,
+                pitch: 1.0,
+                volume: 1.0,
+                audio_format: 'mp3'
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.code === 0 && result.data && result.data.audio) {
+            // 播放音频
+            const audioBase64 = result.data.audio;
+            const byteCharacters = atob(audioBase64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const audioBlob = new Blob([byteArray], { type: 'audio/mpeg' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            
+            currentAudio = audio;
+            currentBtn = btn;
+            btn.classList.add('playing');
+            btn.textContent = '⏸';
+            showToast('🔊 播放中（豆包语音）');
+            
+            audio.onended = function() {
+                btn.classList.remove('playing');
+                btn.textContent = '🔊';
+                currentAudio = null;
+                currentBtn = null;
+                URL.revokeObjectURL(audioUrl);
+                showToast('✅ 播放完成');
+            };
+            
+            audio.onerror = function() {
+                btn.classList.remove('playing');
+                btn.textContent = '🔊';
+                currentAudio = null;
+                currentBtn = null;
+                showToast('❌ 播放失败');
+                // 降级到浏览器 TTS
+                fallbackSpeak(text, btn);
+            };
+            
+            audio.play();
+        } else {
+            console.error('TTS错误:', result);
+            showToast('语音合成失败，使用浏览器语音');
+            fallbackSpeak(text, btn);
+        }
+    } catch (error) {
+        console.error('TTS异常:', error);
+        showToast('语音服务异常，使用浏览器语音');
+        fallbackSpeak(text, btn);
+    }
+}
+
+// 降级：浏览器 TTS
+function fallbackSpeak(text, btn) {
+    if (!('speechSynthesis' in window)) {
+        showToast('浏览器不支持语音');
+        return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'zh-CN';
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    const voices = window.speechSynthesis.getVoices();
+    const zhVoice = voices.find(v => v.lang.includes('zh'));
+    if (zhVoice) utterance.voice = zhVoice;
+    
+    currentBtn = btn;
+    btn.classList.add('playing');
+    btn.textContent = '⏸';
+    showToast('🔊 播放中（浏览器语音）');
+    
+    utterance.onend = function() {
+        btn.classList.remove('playing');
+        btn.textContent = '🔊';
+        currentBtn = null;
+        showToast('✅ 播放完成');
+    };
+    utterance.onerror = function() {
+        btn.classList.remove('playing');
+        btn.textContent = '🔊';
+        currentBtn = null;
+        showToast('❌ 播放失败');
+    };
+    window.speechSynthesis.speak(utterance);
+}
+// ============================================================
+// AI 自动语音播报
+// ============================================================
+
+let currentSpeakAudio = null;
+
+async function speakText(text) {
+    if (!text || text.length === 0) return;
+    
+    // 如果正在播放，先停止
+    if (currentSpeakAudio && !currentSpeakAudio.paused) {
+        currentSpeakAudio.pause();
+        currentSpeakAudio = null;
+    }
+    
+    try {
+        const token = await getVolcToken();
+        if (!token) {
+            fallbackSpeakText(text);
+            return;
+        }
+        
+        const response = await fetch('https://openspeech.bytedance.com/api/v1/tts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                appid: VOLC_APP_ID,
+                text: text,
+                voice_type: 'zh_female_1',
+                speed: 1.0,
+                pitch: 1.0,
+                volume: 1.0,
+                audio_format: 'mp3'
+            })
+        });
+        
+        const result = await response.json();
+        console.log('📦 TTS响应:', result);
+        
+        if (result.code === 0 && result.data && result.data.audio) {
+            const audioBase64 = result.data.audio;
+            const byteCharacters = atob(audioBase64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const audioBlob = new Blob([byteArray], { type: 'audio/mpeg' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            
+            currentSpeakAudio = audio;
+            showToast('🔊 AI正在说话（豆包）');
+            
+            audio.onended = function() {
+                currentSpeakAudio = null;
+                URL.revokeObjectURL(audioUrl);
+                showToast('✅ 播放完成');
+            };
+            
+            audio.onerror = function() {
+                currentSpeakAudio = null;
+                showToast('❌ 播放失败');
+                fallbackSpeakText(text);
+            };
+            
+            audio.play();
+        } else {
+            console.error('TTS错误:', result);
+            fallbackSpeakText(text);
+        }
+    } catch (error) {
+        console.error('TTS异常:', error);
+        fallbackSpeakText(text);
+    }
+}
+
+// 降级：浏览器 TTS
+function fallbackSpeakText(text) {
+    if (!('speechSynthesis' in window)) {
+        showToast('浏览器不支持语音');
+        return;
+    }
+    
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'zh-CN';
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    
+    const voices = window.speechSynthesis.getVoices();
+    const zhVoice = voices.find(v => v.lang.includes('zh'));
+    if (zhVoice) utterance.voice = zhVoice;
+    
+    showToast('🔊 AI正在说话（浏览器）');
+    
+    utterance.onend = function() {
+        showToast('✅ 播放完成');
+    };
+    utterance.onerror = function() {
+        showToast('❌ 播放失败');
+    };
+    
+    window.speechSynthesis.speak(utterance);
+}
+// ============================================================
+// 消息分类 + 互关系统
+// ============================================================
+
+// 关注数据
+let followData = JSON.parse(localStorage.getItem('followData') || '{}');
+const CURRENT_USER = 'user_001';  // 当前用户ID
+
+// 初始化关注数据
+if (!followData[CURRENT_USER]) {
+    followData[CURRENT_USER] = { following: [], followers: [] };
+}
+saveFollowData();
+
+function saveFollowData() {
+    localStorage.setItem('followData', JSON.stringify(followData));
+}
+
+// 获取好友列表（互关的人）
+function getFriends() {
+    const user = followData[CURRENT_USER];
+    if (!user) return [];
+    return user.following.filter(id => 
+        followData[id] && followData[id].followers && followData[id].followers.includes(CURRENT_USER)
+    );
+}
+
+// 检查是否已关注
+function isFollowing(hostId) {
+    const user = followData[CURRENT_USER];
+    if (!user) return false;
+    return user.following.includes(String(hostId));
+}
+
+// 检查是否互关
+function isMutual(hostId) {
+    return isFollowing(hostId) && 
+           followData[String(hostId)] && 
+           followData[String(hostId)].followers && 
+           followData[String(hostId)].followers.includes(CURRENT_USER);
+}
+
+// 切换关注
+function toggleFollow(hostId) {
+    const userId = String(hostId);
+    const user = followData[CURRENT_USER];
+    if (!user) return;
+    
+    const idx = user.following.indexOf(userId);
+    if (idx > -1) {
+        // 取消关注
+        user.following.splice(idx, 1);
+        // 从对方的粉丝中移除
+        if (followData[userId] && followData[userId].followers) {
+            const fIdx = followData[userId].followers.indexOf(CURRENT_USER);
+            if (fIdx > -1) followData[userId].followers.splice(fIdx, 1);
+        }
+        showToast('已取消关注');
+    } else {
+        // 关注
+        user.following.push(userId);
+        if (!followData[userId]) followData[userId] = { following: [], followers: [] };
+        if (!followData[userId].followers) followData[userId].followers = [];
+        if (!followData[userId].followers.includes(CURRENT_USER)) {
+            followData[userId].followers.push(CURRENT_USER);
+        }
+        showToast('✅ 已关注');
+    }
+    
+    saveFollowData();
+    renderAllTabs();
+    updateBadges();
+}
+
+// ===== Tab 切换 =====
+let currentMessageTab = 'chat';
+
+function switchMessageTab(tab) {
+    currentMessageTab = tab;
+    
+    document.querySelectorAll('.tab-item').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tab);
+    });
+    
+    document.getElementById('messageList').style.display = tab === 'chat' ? 'flex' : 'none';
+    document.getElementById('groupListContainer').style.display = tab === 'group' ? 'flex' : 'none';
+    document.getElementById('friendListContainer').style.display = tab === 'friend' ? 'flex' : 'none';
+    
+    if (tab === 'chat') renderMessageList();
+    else if (tab === 'group') renderGroupList();
+    else if (tab === 'friend') renderFriendList();
+}
+
+// ===== 渲染好友列表 =====
+function renderFriendList() {
+    const container = document.getElementById('friendListContainer');
+    container.innerHTML = '';
+    
+    const friends = getFriends();
+    
+    if (friends.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">👤</span>
+                <div>还没有好友</div>
+                <div style="font-size:12px;color:#555;margin-top:4px;">去关注一些主播，互关后成为好友</div>
+            </div>
+        `;
+        return;
+    }
+    
+    friends.forEach(hostId => {
+        const host = hosts.find(h => h.id == hostId);
+        if (!host) return;
+        
+        const mutual = isMutual(hostId);
+        const following = isFollowing(hostId);
+        
+        const item = document.createElement('div');
+        item.className = 'friend-item';
+        item.innerHTML = `
+            <div class="friend-avatar" style="background-image:url('${host.avatar || ''}');">
+                ${!host.avatar ? '👤' : ''}
+            </div>
+            <div class="friend-info">
+                <div class="friend-name">${host.name}</div>
+               
+            </div>
+            <button class="friend-action-btn ${mutual ? 'mutual' : following ? 'following' : 'not-following'}" 
+                    data-host="${host.id}">
+                ${mutual ? '✅ 互关' : following ? '✓ 已关' : '+ 关注'}
+            </button>
+        `;
+        
+        item.querySelector('.friend-action-btn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleFollow(host.id);
+        });
+        
+        // 点击进入聊天
+        item.addEventListener('click', () => {
+            openChatPopup(host);
+        });
+        
+        container.appendChild(item);
+    });
+    const footer = document.createElement('div');
+    footer.className = 'friend-count-footer';
+    footer.innerHTML = `
+        <span> ${friends.length} 个好友</span>
+    `;
+    container.appendChild(footer);
+}
+
+// ===== 渲染群聊列表（占位，后续扩展） =====
+function renderGroupList() {
+    const container = document.getElementById('groupListContainer');
+    container.innerHTML = `
+        <div class="empty-state">
+            <span class="empty-icon">👥</span>
+            <div>群聊功能开发中</div>
+            <div style="font-size:12px;color:#555;margin-top:4px;">即将支持创建和加入群聊</div>
+        </div>
+    `;
+}
+
+// ===== 更新徽章 =====
+function updateBadges() {
+    // 好友数量
+    const friendCount = getFriends().length;
+    document.getElementById('friendCountBadge').textContent = friendCount;
+    
+    // 消息未读
+    let totalUnread = 0;
+    for (let name in unreadCount) {
+        totalUnread += (unreadCount[name] || 0);
+    }
+    const chatBadge = document.getElementById('chatUnreadBadge');
+    if (totalUnread > 0) {
+        chatBadge.style.display = 'inline';
+        chatBadge.textContent = totalUnread;
+    } else {
+        chatBadge.style.display = 'none';
+    }
+}
+
+// ===== 重写 renderMessageList（添加关注按钮） =====
+const originalRenderMessageList = renderMessageList;
+renderMessageList = function() {
+    const container = document.getElementById('messageList');
+    container.innerHTML = '';
+    
+    // 按最后消息时间排序
+    const sortedHosts = [...hosts].sort((a, b) => {
+        const aTime = messageHistory[a.name]?.slice(-1)[0]?.time || 0;
+        const bTime = messageHistory[b.name]?.slice(-1)[0]?.time || 0;
+        return bTime - aTime;
+    });
+    
+    sortedHosts.forEach(host => {
+        const lastMsg = messageHistory[host.name]?.slice(-1)[0]?.text || "点击开始聊天";
+        const unread = unreadCount[host.name] || 0;
+        const unreadBadge = unread > 0 ? `<span class="unread-badge">${unread}</span>` : '';
+        const isFriend = isMutual(host.id);
+        
+        const item = document.createElement('div');
+        item.className = 'message-item';
+        item.innerHTML = `
+            ${getAvatarHtml(host.avatar, 'message-avatar')}
+            <div class="message-preview">
+                <div class="message-name">
+                    ${host.name} 
+                    ${unreadBadge}
+                   ${isFriend ? `<img src="assets/icons/online.png" style="width:16px;height:16px;margin-right:2px;vertical-align:middle;margin-top:1px;" alt="在线"><span style="font-size:13px;color:#4caf50;margin-left:-2px;margin-top:-2px;">在线</span>` : ''}
+                </div>
+                <div class="message-text">${lastMsg.substring(0, 35)}</div>
+                <div class="affection-bar" style="margin-top:6px;">
+                    <div class="affection-fill" style="width: ${affection[host.name] || 0}%"></div>
+                </div>
+            </div>
+            <button class="friend-action-btn ${isFollowing(host.id) ? 'following' : 'not-following'}" 
+                    data-host="${host.id}" style="flex-shrink:0;margin-left:8px;">
+                ${isFollowing(host.id) ? '✓ 已关' : '+ 关注'}
+            </button>
+        `;
+        
+        // 关注按钮事件
+        item.querySelector('.friend-action-btn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleFollow(host.id);
+        });
+        
+        // 点击进入聊天
+        item.addEventListener('click', () => {
+            openChatPopup(host);
+        });
+        
+        container.appendChild(item);
+    });
+};
+
+// ===== 重写 openMessageSidebar =====
+const originalOpenMessageSidebar = openMessageSidebar;
+openMessageSidebar = function() {
+    document.getElementById('messageSidebar').classList.add('open');
+    renderAllTabs();
+    updateBadges();
+};
+
+// ===== 渲染所有Tab =====
+function renderAllTabs() {
+    switchMessageTab(currentMessageTab);
+}
+// ============================================================
+// 🏠 个人事务面板
+// ============================================================
+
+let affairData = JSON.parse(localStorage.getItem('affairData')) || {
+    city: '北京',
+    job: null,
+    position: null,
+    salary: 0,
+    savings: 5000,
+    todayIncome: 0,
+    todayExpense: 0,
+    monthIncome: 0,
+    energy: 100,
+    maxEnergy: 100,
+    mood: 80,
+    maxMood: 100,
+    isWorking: false,
+    workStartTime: null,
+    totalWorkHours: 0,
+    isOnLeave: false,
+    isFired: false
+};
+
+const jobs = [
+    { name: '互联网公司', position: '前端开发', salary: 18000 },
+    { name: '设计工作室', position: 'UI设计师', salary: 15000 },
+    { name: '国企单位', position: '行政专员', salary: 12000 },
+    { name: '创业公司', position: '全栈开发', salary: 22000 }
+];
+
+function saveAffair() {
+    // 保存到 localStorage（备份）
+    localStorage.setItem('affairData', JSON.stringify(affairData));
+    
+    // ✅ 保存到后端
+    saveGameToServer('affairData', affairData);
+}
+function updateAffairClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    const el = document.getElementById('afClock');
+    const elSec = document.getElementById('afSeconds');
+    if (el) el.textContent = h + ':' + m;
+    if (elSec) elSec.textContent = s;
+    const elDate = document.getElementById('afDate');
+    const elWeek = document.getElementById('afWeekday');
+    if (elDate) elDate.textContent = now.getFullYear() + '年' + String(now.getMonth()+1).padStart(2,'0') + '月' + String(now.getDate()).padStart(2,'0') + '日';
+    if (elWeek) elWeek.textContent = ['周日','周一','周二','周三','周四','周五','周六'][now.getDay()];
+     updateWeatherDisplay();
+}
+// ============================================================
+// 🗺️ 城市数据
+// ============================================================
+
+// ============================================================
+// 🗺️ 城市数据（分散版）
+// ============================================================
+
+const CITY_DATA = [
+    // 东北
+    { id: 'haerbin', name: '哈尔滨', x: 780, y: 122, region: '东北', level: 2, residents: [] },
+    { id: 'shenyang', name: '沈阳', x: 700, y: 80, region: '东北', level: 2, residents: [] },
+    
+    // 华北
+    { id: 'beijing', name: '北京', x: 580, y: 189.8, region: '华北', level: 1, residents: ['清月', '凌霄'] },
+    { id: 'tianjin', name: '天津', x: 610, y: 155, region: '华北', level: 3, residents: [] },
+    { id: 'taiyuan', name: '太原', x: 490, y: 175, region: '华北', level: 3, residents: [] },
+    
+    // 华东
+    { id: 'shanghai', name: '上海', x: 780.25, y: 260.5, region: '华东', level: 1, residents: ['云梦'] },
+    { id: 'hangzhou', name: '杭州', x: 740, y: 265, region: '华东', level: 2, residents: [] },
+    { id: 'nanjing', name: '南京', x: 690, y: 240, region: '华东', level: 2, residents: [] },
+    { id: 'jinan', name: '济南', x: 620, y: 195, region: '华东', level: 3, residents: [] },
+    { id: 'hefei', name: '合肥', x: 670, y: 265, region: '华东', level: 3, residents: [] },
+    { id: 'nanchang', name: '南昌', x: 660, y: 320, region: '华东', level: 3, residents: [] },
+    { id: 'xiamen', name: '厦门', x: 720, y: 390, region: '华南', level: 3, residents: [] },
+    
+    // 华中
+    { id: 'wuhan', name: '武汉', x: 560, y: 295, region: '华中', level: 2, residents: [] },
+    { id: 'zhengzhou', name: '郑州', x: 530, y: 230, region: '华中', level: 3, residents: [] },
+    { id: 'changsha', name: '长沙', x: 560, y: 345, region: '华中', level: 3, residents: [] },
+    
+    // 华南
+    { id: 'guangzhou', name: '广州', x: 620, y: 401, region: '华南', level: 1, residents: ['星尘'] },
+    
+    // 西南
+    { id: 'chengdu', name: '成都', x: 380, y: 321, region: '西南', level: 2, residents: ['阿雪'] },
+    { id: 'chongqing', name: '重庆', x: 440, y: 342, region: '西南', level: 2, residents: [] },
+    { id: 'kunming', name: '昆明', x: 380, y: 393, region: '西南', level: 3, residents: [] },
+    
+    // 西北
+    { id: 'xian', name: '西安', x: 430, y: 251, region: '西北', level: 2, residents: [] },
+    { id: 'lanzhou', name: '兰州', x: 340, y: 263, region: '西北', level: 3, residents: [] },
+    { id: 'wulumuqi', name: '乌鲁木齐', x: 150, y: 190.5, region: '西北', level: 3, residents: [] }
+];
+// ============================================================
+// 🌤️ 城市天气配置
+// ============================================================
+
+// 天气图标映射
+const WEATHER_TYPES = {
+    '晴': { icon: 'sunny.png', label: '晴' },
+    '多云': { icon: 'cloudy.png', label: '多云' },
+    '阴': { icon: 'overcast.png', label: '阴' },
+    '小雨': { icon: 'light_rain.png', label: '小雨' },
+    '中雨': { icon: 'moderate_rain.png', label: '中雨' },
+    '大雨': { icon: 'heavy_rain.png', label: '大雨' },
+    '雷阵雨': { icon: 'thunderstorm.png', label: '雷阵雨' },
+    '小雪': { icon: 'light_snow.png', label: '小雪' },
+    '中雪': { icon: 'moderate_snow.png', label: '中雪' },
+    '大雪': { icon: 'heavy_snow.png', label: '大雪' },
+    '雾': { icon: 'fog.png', label: '雾' },
+    '霾': { icon: 'haze.png', label: '霾' },
+    '沙尘': { icon: 'sandstorm.png', label: '沙尘' },
+    '台风': { icon: 'typhoon.png', label: '台风' }
+};
+
+// 各区域天气配置（按真实地理气候）
+const REGION_WEATHER = {
+    '东北': {
+        season: {
+            'spring': ['多云', '阴', '小雨', '晴'],
+            'summer': ['晴', '多云', '小雨', '雷阵雨'],
+            'autumn': ['晴', '多云', '阴', '小雨'],
+            'winter': ['小雪', '中雪', '大雪', '多云', '晴']
+        },
+        weights: {
+            'spring': [25, 25, 20, 30],
+            'summer': [30, 25, 20, 25],
+            'autumn': [30, 25, 20, 25],
+            'winter': [25, 20, 15, 25, 15]
+        }
+    },
+    '华北': {
+        season: {
+            'spring': ['晴', '多云', '阴', '小雨', '沙尘'],
+            'summer': ['晴', '多云', '雷阵雨', '大雨'],
+            'autumn': ['晴', '多云', '阴', '小雨'],
+            'winter': ['晴', '多云', '小雪', '阴']
+        },
+        weights: {
+            'spring': [25, 25, 15, 20, 15],
+            'summer': [30, 25, 25, 20],
+            'autumn': [30, 30, 20, 20],
+            'winter': [30, 25, 20, 25]
+        }
+    },
+    '华东': {
+        season: {
+            'spring': ['阴', '小雨', '多云', '晴'],
+            'summer': ['雷阵雨', '大雨', '多云', '晴', '台风'],
+            'autumn': ['晴', '多云', '阴', '小雨'],
+            'winter': ['多云', '阴', '小雨', '晴']
+        },
+        weights: {
+            'spring': [25, 30, 25, 20],
+            'summer': [30, 25, 20, 15, 10],
+            'autumn': [30, 25, 20, 25],
+            'winter': [25, 25, 20, 30]
+        }
+    },
+    '华南': {
+        season: {
+            'spring': ['小雨', '阴', '多云', '晴', '雷阵雨'],
+            'summer': ['雷阵雨', '大雨', '多云', '晴', '台风'],
+            'autumn': ['晴', '多云', '阴', '小雨'],
+            'winter': ['多云', '晴', '阴', '小雨']
+        },
+        weights: {
+            'spring': [25, 20, 20, 15, 20],
+            'summer': [30, 25, 20, 10, 15],
+            'autumn': [30, 25, 20, 25],
+            'winter': [25, 25, 20, 30]
+        }
+    },
+    '西南': {
+        season: {
+            'spring': ['小雨', '阴', '多云', '晴', '雷阵雨'],
+            'summer': ['雷阵雨', '大雨', '阴', '多云', '小雨'],
+            'autumn': ['阴', '小雨', '多云', '晴'],
+            'winter': ['多云', '阴', '小雨', '晴']
+        },
+        weights: {
+            'spring': [25, 20, 20, 15, 20],
+            'summer': [25, 20, 20, 20, 15],
+            'autumn': [25, 30, 25, 20],
+            'winter': [25, 25, 20, 30]
+        }
+    },
+    '西北': {
+        season: {
+            'spring': ['晴', '多云', '沙尘', '阴'],
+            'summer': ['晴', '多云', '阴', '沙尘'],
+            'autumn': ['晴', '多云', '阴', '小雨'],
+            'winter': ['晴', '多云', '阴', '小雪']
+        },
+        weights: {
+            'spring': [35, 25, 20, 20],
+            'summer': [40, 25, 15, 20],
+            'autumn': [35, 30, 20, 15],
+            'winter': [35, 30, 20, 15]
+        }
+    },
+    '华中': {
+        season: {
+            'spring': ['阴', '小雨', '多云', '晴'],
+            'summer': ['雷阵雨', '大雨', '多云', '晴'],
+            'autumn': ['晴', '多云', '阴', '小雨'],
+            'winter': ['多云', '阴', '小雨', '晴', '小雪']
+        },
+        weights: {
+            'spring': [25, 30, 25, 20],
+            'summer': [30, 25, 25, 20],
+            'autumn': [30, 25, 20, 25],
+            'winter': [25, 25, 20, 20, 10]
+        }
+    }
+};
+
+// 默认天气（城市没有配置时使用）
+const DEFAULT_WEATHER = {
+    'spring': ['晴', '多云', '阴', '小雨'],
+    'summer': ['晴', '多云', '雷阵雨', '阴'],
+    'autumn': ['晴', '多云', '阴', '小雨'],
+    'winter': ['晴', '多云', '阴', '小雪']
+};
+// ============================================================
+// 🌤️ 天气核心函数
+// ============================================================
+
+// 获取当前季节
+function getSeason() {
+    const month = new Date().getMonth();
+    if (month >= 2 && month <= 4) return 'spring';
+    if (month >= 5 && month <= 7) return 'summer';
+    if (month >= 8 && month <= 10) return 'autumn';
+    return 'winter';
+}
+
+// 获取城市所在区域
+function getCityRegion(cityName) {
+    const city = getCityByName(cityName);
+    if (!city) return '华北';
+    return city.region || '华北';
+}
+
+// 获取城市天气配置
+function getCityWeatherConfig(cityName) {
+    const region = getCityRegion(cityName);
+    return REGION_WEATHER[region] || null;
+}
+
+// 获取今日城市天气（缓存，一天一换）
+function getTodayWeatherForCity(cityName) {
+    const today = new Date();
+    const dateKey = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+    const cacheKey = 'weather_' + cityName;
+    
+    // 检查缓存
+    let weatherData = localStorage.getItem(cacheKey);
+    if (weatherData) {
+        try {
+            weatherData = JSON.parse(weatherData);
+            if (weatherData.date === dateKey) {
+                return weatherData.weather;
+            }
+        } catch (e) {}
+    }
+    
+    // 生成新天气
+    const season = getSeason();
+    const config = getCityWeatherConfig(cityName);
+    
+    let weatherList, weights;
+    if (config && config.season && config.season[season]) {
+        weatherList = config.season[season];
+        weights = config.weights[season] || null;
+    } else {
+        weatherList = DEFAULT_WEATHER[season] || ['晴', '多云'];
+    }
+    
+    // 根据权重随机选择
+    let selectedWeather;
+    if (weights && weights.length === weatherList.length) {
+        let totalWeight = weights.reduce((a, b) => a + b, 0);
+        let random = Math.random() * totalWeight;
+        for (let i = 0; i < weatherList.length; i++) {
+            random -= weights[i];
+            if (random <= 0) {
+                selectedWeather = weatherList[i];
+                break;
+            }
+        }
+        if (!selectedWeather) selectedWeather = weatherList[0];
+    } else {
+        selectedWeather = weatherList[Math.floor(Math.random() * weatherList.length)];
+    }
+    
+    // 保存缓存
+    localStorage.setItem(cacheKey, JSON.stringify({
+        date: dateKey,
+        weather: selectedWeather
+    }));
+    
+    return selectedWeather;
+}
+
+// 获取当前玩家所在城市的天气
+function getCurrentCityWeather() {
+    const cityName = affairData?.city || playerCity || '北京';
+    return getTodayWeatherForCity(cityName);
+}
+// ============================================================
+// 🌤️ 天气显示函数
+// ============================================================
+
+// 更新天气显示
+function updateWeatherDisplay() {
+    const weather = getCurrentCityWeather();
+    const config = WEATHER_TYPES[weather];
+    
+    const iconEl = document.getElementById('afWeatherIcon');
+    const textEl = document.getElementById('afWeatherText');
+    
+    if (config) {
+        if (iconEl) {
+            iconEl.src = 'assets/icons/weather/' + config.icon;
+            iconEl.alt = config.label;
+            iconEl.style.display = 'inline-block';
+            iconEl.style.filter = 'brightness(0) invert(0.85)';
+        }
+        if (textEl) {
+            textEl.textContent = config.label;
+        }
+    } else {
+        // 未知天气，显示文字
+        if (iconEl) iconEl.style.display = 'none';
+        if (textEl) textEl.textContent = weather || '晴';
+    }
+}
+
+// 强制刷新当前城市天气（用于测试）
+function refreshWeather() {
+    const cityName = affairData?.city || playerCity || '北京';
+    const cacheKey = 'weather_' + cityName;
+    localStorage.removeItem(cacheKey);
+    updateWeatherDisplay();
+    showToast('🌤️ 天气已刷新');
+}
+// 城市连接线
+const CITY_CONNECTIONS = [
+    ['北京', '上海'],
+    ['北京', '广州'],
+    ['北京', '西安'],
+    ['上海', '杭州'],
+    ['上海', '南京'],
+    ['广州', '厦门'],
+    ['广州', '武汉'],
+    ['成都', '重庆'],
+    ['成都', '西安'],
+    ['武汉', '长沙'],
+    ['武汉', '郑州'],
+    ['西安', '兰州'],
+    ['北京', '天津'],
+    ['南京', '合肥'],
+    ['杭州', '南昌'],
+    ['郑州', '济南'],
+    ['沈阳', '北京']
+];
+
+// 默认玩家城市
+const DEFAULT_CITY = '北京';
+
+function updateAffairUI() {
+    const d = affairData;
+    const el = (id) => document.getElementById(id);
+    if (el('afSavings')) el('afSavings').textContent = '¥' + d.savings.toLocaleString();
+    if (el('afFinanceSavings')) el('afFinanceSavings').textContent = '¥' + d.savings.toLocaleString();
+    if (el('afEnergy')) el('afEnergy').textContent = Math.round(d.energy) + '%';
+    if (el('afEnergyBar')) el('afEnergyBar').style.width = Math.round(d.energy) + '%';
+    if (el('afMood')) el('afMood').textContent = Math.round(d.mood) + '%';
+    if (el('afMoodBar')) el('afMoodBar').style.width = Math.round(d.mood) + '%';
+    if (el('afTodayIncome')) el('afTodayIncome').textContent = '¥' + d.todayIncome.toLocaleString();
+    if (el('afTodayExpense')) el('afTodayExpense').textContent = d.todayExpense.toLocaleString();
+    if (el('afFinanceExpense')) el('afFinanceExpense').textContent = '¥' + d.todayExpense.toLocaleString();
+    if (el('afMonthIncome')) el('afMonthIncome').textContent = '¥' + d.monthIncome.toLocaleString();
+    if (el('afCity')) el('afCity').textContent = '' + d.city;
+
+    const badge = el('afWorkBadge');
+    if (badge) {
+        if (d.isFired) { badge.textContent = '🚫 已开除';
+            badge.className = 'affair-work-badge fired'; }
+        else if (d.isOnLeave) { badge.textContent = '📋 休假中';
+            badge.className = 'affair-work-badge leave'; }
+        else if (d.isWorking) { badge.textContent = '🟢 工作中';
+            badge.className = 'affair-work-badge on-duty'; }
+        else { badge.textContent = '⚪ 未上班';
+            badge.className = 'affair-work-badge off-duty'; }
+    }
+    if (el('afCompany')) el('afCompany').textContent = d.job || '未入职';
+    if (el('afPosition')) el('afPosition').textContent = d.position || '-';
+    if (el('afSalary')) el('afSalary').textContent = '¥' + (d.salary || 0).toLocaleString();
+    if (el('afWorkHours')) el('afWorkHours').textContent = Math.round(d.totalWorkHours) + 'h';
+
+    updateAffairButtons();
+    updateAffairTodo();
+}
+
+function updateAffairButtons() {
+    const d = affairData;
+    const btnStart = document.getElementById('afBtnStart');
+    const btnEnd = document.getElementById('afBtnEnd');
+    const btnLeave = document.getElementById('afBtnLeave');
+    const btnQuit = document.getElementById('afBtnQuit');
+
+    // ===== 被开除 =====
+    if (d.isFired) {
+        // 只有找工作按钮可用，其他禁用
+        [btnEnd, btnLeave, btnQuit].forEach(b => { 
+            if (b) b.classList.add('affair-btn-disabled'); 
+        });
+        if (btnStart) {
+            btnStart.classList.remove('affair-btn-disabled');  // ← 移除禁用样式
+            btnStart.textContent = '🔵 重新找工作';
+            btnStart.onclick = function() {
+                d.isFired = false;
+                saveAffair();
+                updateAffairUI();
+                findJob();  // 直接找工作
+            };
+        }
+        return;
+    }
+
+    // ===== 没有工作 =====
+    if (!d.job) {
+        [btnEnd, btnLeave, btnQuit].forEach(b => { 
+            if (b) b.classList.add('affair-btn-disabled'); 
+        });
+        if (btnStart) {
+            btnStart.classList.remove('affair-btn-disabled');  // ← 移除禁用样式
+            btnStart.textContent = '🔵 找工作';
+            btnStart.onclick = findJob;
+        }
+        return;
+    }
+
+    // ===== 有工作（正常状态）=====
+    [btnStart, btnEnd, btnLeave, btnQuit].forEach(b => { 
+        if (b) b.classList.remove('affair-btn-disabled'); 
+    });
+
+    if (d.isOnLeave) {
+        if (btnStart) {
+            btnStart.textContent = '🔵 销假上班';
+            btnStart.onclick = endLeave;
+        }
+        if (btnEnd) btnEnd.classList.add('affair-btn-disabled');
+        if (btnLeave) {
+            btnLeave.classList.add('affair-btn-disabled');
+            btnLeave.textContent = '📋 休假中';
+        }
+        if (btnQuit) btnQuit.onclick = quitJob;
+        return;
+    }
+
+    if (d.isWorking) {
+        if (btnStart) {
+            btnStart.classList.add('affair-btn-disabled');
+            btnStart.textContent = '🔵 已打卡';
+        }
+        if (btnEnd) {
+            btnEnd.classList.remove('affair-btn-disabled');
+            btnEnd.textContent = '🔴 下班';
+            btnEnd.onclick = endWork;
+        }
+        if (btnLeave) {
+            btnLeave.classList.add('affair-btn-disabled');
+            btnLeave.textContent = '📋 工作中不可请假';
+        }
+        if (btnQuit) btnQuit.onclick = quitJob;
+        return;
+    }
+
+    // 未上班（有工作但没打卡）
+    if (btnStart) {
+        btnStart.classList.remove('affair-btn-disabled');
+        btnStart.textContent = '🔵 上班';
+        btnStart.onclick = startWork;
+    }
+    if (btnEnd) btnEnd.classList.add('affair-btn-disabled');
+    if (btnLeave) {
+        btnLeave.classList.remove('affair-btn-disabled');
+        btnLeave.textContent = '📋 请假';
+        btnLeave.onclick = startLeave;
+    }
+    if (btnQuit) btnQuit.onclick = quitJob;
+}
+
+function findJob() {
+    if (affairData.isFired) { showToast('❌ 你被开除了'); return; }
+    if (affairData.job) { showToast('⚠️ 已有工作'); return; }
+    const job = jobs[Math.floor(Math.random() * jobs.length)];
+    affairData.job = job.name;
+    affairData.position = job.position;
+    affairData.salary = job.salary;
+    saveAffair();
+    updateAffairUI();
+    showToast('✅ 入职 ' + job.name + '，月薪 ¥' + job.salary);
+}
+
+function startWork() {
+    if (!affairData.job || affairData.isFired) { showToast('❌ 没有工作'); return; }
+    if (affairData.isWorking) { showToast('⚠️ 已工作中'); return; }
+    if (affairData.isOnLeave) { showToast('📋 休假中'); return; }
+    if (affairData.energy < 20) { showToast('❌ 精力不足'); return; }
+    affairData.isWorking = true;
+    affairData.workStartTime = Date.now();
+    saveAffair();
+    updateAffairUI();
+    showToast('✅ 打卡上班！');
+}
+
+function endWork() {
+    if (!affairData.isWorking) { showToast('⚠️ 未上班'); return; }
+    const hours = Math.min((Date.now() - affairData.workStartTime) / 3600000, 8);
+    const pay = Math.round((affairData.salary / 22 / 8) * hours);
+    affairData.isWorking = false;
+    affairData.totalWorkHours += hours;
+    affairData.savings += pay;
+    affairData.todayIncome += pay;
+    affairData.monthIncome += pay;
+    affairData.energy = Math.max(0, affairData.energy - hours * 5);
+    affairData.mood = Math.max(0, affairData.mood - hours * 2);
+    saveAffair();
+    updateAffairUI();
+    showToast('✅ 下班！收入 ¥' + pay);
+}
+
+function startLeave() {
+    if (affairData.isWorking) { showToast('⚠️ 工作中不能请假'); return; }
+    if (affairData.isOnLeave) { showToast('⚠️ 已休假'); return; }
+    if (affairData.isFired) { showToast('❌ 已开除'); return; }
+    const cost = Math.round(affairData.salary / 22 * 0.5);
+    affairData.savings -= cost;
+    affairData.todayExpense += cost;
+    affairData.isOnLeave = true;
+    saveAffair();
+    updateAffairUI();
+    showToast('📋 请假成功，扣 ¥' + cost);
+}
+
+function endLeave() {
+    if (!affairData.isOnLeave) { showToast('⚠️ 未休假'); return; }
+    affairData.isOnLeave = false;
+    saveAffair();
+    updateAffairUI();
+    showToast('✅ 销假上班');
+}
+
+function quitJob() {
+    if (!affairData.job) { showToast('⚠️ 无工作'); return; }
+    if (affairData.isWorking) { showToast('⚠️ 先下班'); return; }
+    if (affairData.isOnLeave) { showToast('⚠️ 休假中不能辞职'); return; }
+    if (!confirm('确定辞职吗？')) return;
+    affairData.job = null;
+    affairData.position = null;
+    affairData.salary = 0;
+    affairData.isFired = false;
+    saveAffair();
+    updateAffairUI();
+    showToast('🚪 已辞职');
+}
+
+function updateAffairTodo() {
+    const container = document.getElementById('afTodoList');
+    if (!container) return;
+    const hour = new Date().getHours();
+    const d = affairData;
+    let todos = [];
+
+    if (hour < 9) {
+        todos.push({ icon: '🌅', text: '起床洗漱', time: '清晨', type: 'normal' });
+        todos.push({ icon: '🍳', text: '吃早餐', time: '早上', type: 'important' });
+        if (d.job && !d.isFired && !d.isWorking && !d.isOnLeave) todos.push({ icon: '💼', text: '去上班', time: '早上', type: 'urgent' });
+    } else if (hour < 12) {
+        if (d.isWorking) todos.push({ icon: '💻', text: '工作中...', time: '上午', type: 'important' });
+        else if (d.job && !d.isFired) todos.push({ icon: '⏰', text: '该上班了！', time: '上午', type: 'urgent' });
+        else todos.push({ icon: '📋', text: '找工作', time: '上午', type: 'important' });
+    } else if (hour < 14) {
+        todos.push({ icon: '🍱', text: '吃午饭', time: '中午', type: 'normal' });
+        if (d.isWorking) todos.push({ icon: '☕', text: '午休时间', time: '中午', type: 'normal' });
+    } else if (hour < 18) {
+        if (d.isWorking) todos.push({ icon: '💻', text: '下午工作', time: '下午', type: 'important' });
+        else if (d.job && !d.isFired) todos.push({ icon: '⏰', text: '下午班时间', time: '下午', type: 'urgent' });
+        else todos.push({ icon: '📋', text: '投简历', time: '下午', type: 'important' });
+    } else if (hour < 21) {
+        todos.push({ icon: '🍜', text: '吃晚饭', time: '晚上', type: 'normal' });
+        if (!d.isWorking) todos.push({ icon: '🎮', text: '自由时间', time: '晚上', type: 'normal' });
+    } else {
+        todos.push({ icon: '🛌', text: '准备休息', time: '深夜', type: 'normal' });
+        todos.push({ icon: '🌙', text: '晚安', time: '深夜', type: 'normal' });
+    }
+
+    if (!d.job && !d.isFired && hour >= 9 && hour < 18) todos.unshift({ icon: '💼', text: '建议找份工作', time: '今日', type: 'urgent' });
+    if (d.isFired) todos.unshift({ icon: '🚫', text: '被开除了，需重新找工作', time: '今日', type: 'urgent' });
+    if (d.energy < 30) todos.unshift({ icon: '😴', text: '精力不足，建议休息', time: '今日', type: 'important' });
+
+    const seen = new Set();
+    const unique = todos.filter(t => { const key = t.text; if (seen.has(key)) return false;
+        seen.add(key); return true; }).slice(0, 6);
+
+    container.innerHTML = unique.map(t => `
+        <div class="affair-todo-item ${t.type === 'urgent' ? 'urgent' : t.type === 'important' ? 'important' : 'normal'}">
+            <span class="icon">${t.icon}</span>
+            <span class="text">${t.text}</span>
+            <span class="time-tag">${t.time}</span>
+        </div>
+    `).join('');
+
+    const count = document.getElementById('afTodoCount');
+    if (count) count.textContent = unique.length + ' 项';
+}
+
+function showAffairPanel() {
+    const mapContainer = document.getElementById('mapContainer');
+    if (mapContainer) {
+        mapContainer.classList.remove('active');
+        mapContainer.style.display = 'none';
+    }
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const nav = document.getElementById('affairNav');
+    if (nav) nav.classList.add('active');
+
+    const feed = document.getElementById('feedContainer');
+    if (feed) feed.style.display = 'none';
+    document.getElementById('messageSidebar')?.classList.remove('open');
+    document.getElementById('chatSidebar')?.classList.remove('open');
+
+    let panel = document.getElementById('affairPanel');
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'affairPanel';
+        panel.className = 'affair-panel';
+        const container = document.querySelector('.main-container') || document.body;
+        container.appendChild(panel);
+        panel.innerHTML = `
+            <!-- 主容器：左侧事务 + 右侧功能 -->
+            <div class="affair-main-wrapper">
+                <!-- ===== 左侧：个人事务（不变） ===== -->
+                <div class="affair-left">
+                    <div class="affair-time-section">
+                        <div>
+                            <div class="affair-time-main"><span id="afClock">00:00</span><span class="seconds" id="afSeconds">00</span></div>
+                            <div class="affair-date-row"><span id="afDate">0000年00月00日</span><span class="weekday" id="afWeekday">周一</span><span class="weather-display" style="margin-left:12px;">
+    <img id="afWeatherIcon" class="weather-icon" src="assets/icons/weather/sunny.png" alt="天气">
+    <span id="afWeatherText" class="weather-text">晴</span>
+</span></div>
+                        </div>
+                        <div class="city-location">
+    <img src="assets/icons/locate.png" class="city-icon" alt="定位">
+    <span class="city-name" id="afCity">${affairData.city || playerCity || '北京'}</span>
+</div>
+                    </div>
+                    <div class="affair-stats">
+                        <div class="affair-stat-card"><div class="label">💰 存款</div><div class="value gold" id="afSavings">¥0</div><div class="sub">今日支出 ¥<span id="afTodayExpense">0</span></div></div>
+                        <div class="affair-stat-card"><div class="label">⚡ 精力</div><div class="value energy" id="afEnergy">100%</div><div class="affair-bar"><div class="fill energy-fill" id="afEnergyBar" style="width:100%"></div></div></div>
+                        <div class="affair-stat-card"><div class="label">💭 心情</div><div class="value mood" id="afMood">80%</div><div class="affair-bar"><div class="fill mood-fill" id="afMoodBar" style="width:80%"></div></div></div>
+                    </div>
+                    <div class="affair-work">
+                        <div class="affair-work-header"><div class="affair-work-title">💼 工作</div><div class="affair-work-badge off-duty" id="afWorkBadge">⚪ 未上班</div></div>
+                        <div class="affair-work-detail">
+                            <span>公司 <span class="val" id="afCompany">未入职</span></span>
+                            <span>职位 <span class="val" id="afPosition">-</span></span>
+                            <span>月薪 <span class="val" id="afSalary">¥0</span></span>
+                            <span>工作时长 <span class="val" id="afWorkHours">0h</span></span>
+                        </div>
+                        <div class="affair-work-actions">
+                            <button class="affair-btn-start" id="afBtnStart">🔵 找工作</button>
+                            <button class="affair-btn-end" id="afBtnEnd">🔴 下班</button>
+                            <button class="affair-btn-leave" id="afBtnLeave">📋 请假</button>
+                            <button class="affair-btn-quit" id="afBtnQuit">🚪 辞职</button>
+                        </div>
+                    </div>
+                    <div class="affair-finance">
+                        <div class="affair-finance-header"><div class="affair-finance-title">📊 财务</div><span style="font-size:13px;color:#666;">本月收入 <span style="color:#4ecdc4;" id="afMonthIncome">¥0</span></span></div>
+                        <div class="affair-finance-grid">
+                            <div class="affair-finance-item"><div class="label">存款</div><div class="number gold" id="afFinanceSavings">¥0</div></div>
+                            <div class="affair-finance-item"><div class="label">今日收入</div><div class="number green" id="afTodayIncome">¥0</div></div>
+                            <div class="affair-finance-item"><div class="label">今日支出</div><div class="number red" id="afFinanceExpense">¥0</div></div>
+                        </div>
+                    </div>
+                    <div class="affair-todo">
+                        <div class="affair-todo-header"><div class="affair-todo-title">📋 今日待办</div><span style="font-size:13px;color:#666;" id="afTodoCount">0 项</span></div>
+                        <div class="affair-todo-list" id="afTodoList"></div>
+                    </div>
+                </div>
+
+                <!-- ===== 右侧：功能图标网格 ===== -->
+                <div class="affair-right">
+                    <!-- 图标网格 -->
+                    <div class="affair-grid" id="affairGrid">
+                        <div class="grid-item" data-page="shop" onclick="switchAffairPage('shop')">
+                            <div class="grid-icon">🏪</div>
+                            <div class="grid-label">商城</div>
+                        </div>
+                        <div class="grid-item" data-page="side" onclick="switchAffairPage('side')">
+                            <div class="grid-icon">💼</div>
+                            <div class="grid-label">副业</div>
+                        </div>
+                        <div class="grid-item" data-page="finance" onclick="switchAffairPage('finance')">
+                            <div class="grid-icon">📈</div>
+                            <div class="grid-label">理财</div>
+                        </div>
+                        <div class="grid-item" data-page="business" onclick="switchAffairPage('business')">
+                            <div class="grid-icon">🏢</div>
+                            <div class="grid-label">商业</div>
+                        </div>
+                        <div class="grid-item" data-page="backpack" onclick="switchAffairPage('backpack')">
+                            <div class="grid-icon">🎒</div>
+                            <div class="grid-label">背包</div>
+                        </div>
+                        <div class="grid-item" data-page="task" onclick="switchAffairPage('task')">
+                            <div class="grid-icon">📋</div>
+                            <div class="grid-label">任务</div>
+                        </div>
+                        <div class="grid-item" data-page="achievement" onclick="switchAffairPage('achievement')">
+                            <div class="grid-icon">🏆</div>
+                            <div class="grid-label">成就</div>
+                        </div>
+                        <div class="grid-item" data-page="settings" onclick="switchAffairPage('settings')">
+                            <div class="grid-icon">⚙️</div>
+                            <div class="grid-label">设置</div>
+                        </div>
+                    </div>
+
+                    <!-- 功能页面容器（点击图标后显示） -->
+                    <div class="affair-page-container" id="affairPageContainer">
+                        <div class="page-placeholder" id="pagePlaceholder">
+                            <div style="font-size:48px;margin-bottom:12px;">👆</div>
+                            <div style="font-size:16px;color:#888;">点击上方图标进入功能</div>
+                        </div>
+                        <!-- 各个功能页面（默认隐藏） -->
+                        <div class="affair-page" id="pageShop" style="display:none;">
+                            <div class="page-header"><span class="page-title">🏪 商城</span><button class="page-back" onclick="closeAffairPage()">✕</button></div>
+                            <div class="page-body">
+                                <div class="page-placeholder-content">
+                                    <div style="font-size:40px;margin-bottom:10px;">🏪</div>
+                                    <div style="font-size:16px;color:#888;">商城功能开发中</div>
+                                    <div style="font-size:13px;color:#666;margin-top:6px;">购买礼物、道具、装扮送给NPC</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="affair-page" id="pageSide" style="display:none;">
+                            <div class="page-header"><span class="page-title">💼 副业</span><button class="page-back" onclick="closeAffairPage()">✕</button></div>
+                            <div class="page-body">
+                                <div class="page-placeholder-content">
+                                    <div style="font-size:40px;margin-bottom:10px;">💼</div>
+                                    <div style="font-size:16px;color:#888;">副业功能开发中</div>
+                                    <div style="font-size:13px;color:#666;margin-top:6px;">兼职、技能、自由职业</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="affair-page" id="pageFinance" style="display:none;">
+                            <div class="page-header"><span class="page-title">📈 理财</span><button class="page-back" onclick="closeAffairPage()">✕</button></div>
+                            <div class="page-body">
+                                <div class="page-placeholder-content">
+                                    <div style="font-size:40px;margin-bottom:10px;">📈</div>
+                                    <div style="font-size:16px;color:#888;">理财功能开发中</div>
+                                    <div style="font-size:13px;color:#666;margin-top:6px;">存款、基金、投资</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="affair-page" id="pageBusiness" style="display:none;">
+                            <div class="page-header"><span class="page-title">🏢 商业</span><button class="page-back" onclick="closeAffairPage()">✕</button></div>
+                            <div class="page-body">
+                                <div class="page-placeholder-content">
+                                    <div style="font-size:40px;margin-bottom:10px;">🏢</div>
+                                    <div style="font-size:16px;color:#888;">商业功能开发中</div>
+                                    <div style="font-size:13px;color:#666;margin-top:6px;">开店、投资、创业</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="affair-page" id="pageBackpack" style="display:none;">
+                            <div class="page-header"><span class="page-title">🎒 背包</span><button class="page-back" onclick="closeAffairPage()">✕</button></div>
+                            <div class="page-body" id="pageBackpackBody">
+                                <!-- 背包内容复用 -->
+                            </div>
+                        </div>
+                        <div class="affair-page" id="pageTask" style="display:none;">
+                            <div class="page-header"><span class="page-title">📋 任务</span><button class="page-back" onclick="closeAffairPage()">✕</button></div>
+                            <div class="page-body">
+                                <div class="page-placeholder-content">
+                                    <div style="font-size:40px;margin-bottom:10px;">📋</div>
+                                    <div style="font-size:16px;color:#888;">任务系统开发中</div>
+                                    <div style="font-size:13px;color:#666;margin-top:6px;">每日任务、成就任务</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="affair-page" id="pageAchievement" style="display:none;">
+                            <div class="page-header"><span class="page-title">🏆 成就</span><button class="page-back" onclick="closeAffairPage()">✕</button></div>
+                            <div class="page-body">
+                                <div class="page-placeholder-content">
+                                    <div style="font-size:40px;margin-bottom:10px;">🏆</div>
+                                    <div style="font-size:16px;color:#888;">成就系统开发中</div>
+                                    <div style="font-size:13px;color:#666;margin-top:6px;">解锁各种成就徽章</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="affair-page" id="pageSettings" style="display:none;">
+                            <div class="page-header"><span class="page-title">⚙️ 设置</span><button class="page-back" onclick="closeAffairPage()">✕</button></div>
+                            <div class="page-body">
+                                <div class="page-placeholder-content">
+                                    <div style="font-size:40px;margin-bottom:10px;">⚙️</div>
+                                    <div style="font-size:16px;color:#888;">设置功能开发中</div>
+                                    <div style="font-size:13px;color:#666;margin-top:6px;">主题、音效、隐私</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    panel.classList.add('active');
+    panel.style.display = 'block';
+    updateAffairClock();
+    updateAffairUI();
+    updateWeatherDisplay();
+
+    if (window._affairInterval) clearInterval(window._affairInterval);
+    window._affairInterval = setInterval(() => {
+        if (panel.classList.contains('active')) {
+            updateAffairClock();
+            if (!affairData.isWorking && affairData.energy < affairData.maxEnergy) {
+                affairData.energy = Math.min(affairData.maxEnergy, affairData.energy + 0.5);
+            }
+            if (affairData.mood < affairData.maxMood) {
+                affairData.mood = Math.min(affairData.maxMood, affairData.mood + 0.3);
+            }
+            updateAffairUI();
+        }
+    }, 5000);
+}
+// ============================================================
+// 🗺️ 地图系统
+// ============================================================
+
+let playerCity = localStorage.getItem('playerCity') || DEFAULT_CITY;
+let selectedCity = null;
+let mapAnimationId = null;
+let hoveredCity = null;
+let cityDetailOpen = false;
+let travelOpen = false;
+
+// ===== 获取城市对象 =====
+function getCityByName(name) {
+    return CITY_DATA.find(c => c.name === name);
+}
+
+// ===== 获取城市居民（主播） =====
+function getCityResidents(cityName) {
+    const city = getCityByName(cityName);
+    if (!city) return [];
+    return city.residents || [];
+}
+
+// ===== 检查是否同城 =====
+function isSameCity(cityName) {
+    return playerCity === cityName;
+}
+
+// ===== 检查城市是否有可互动的人 =====
+function hasResidents(cityName) {
+    return getCityResidents(cityName).length > 0;
+}
+
+// ===== 获取城市等级颜色 =====
+function getCityColor(level) {
+    if (level === 1) return { glow: 'rgba(212,167,70,0.6)', core: '#ffd700', ring: '#d4a746' };
+    if (level === 2) return { glow: 'rgba(212,167,70,0.35)', core: '#c9a84c', ring: '#b8953a' };
+    return { glow: 'rgba(212,167,70,0.2)', core: '#a8843a', ring: '#8a6f2e' };
+}
+
+// ===== 打开地图 =====
+function openMap() {
+const panel = document.getElementById('affairPanel');
+    if (panel) {
+        panel.classList.remove('active');
+        panel.style.display = 'none';
+    }
+    const feed = document.getElementById('feedContainer');
+    if (feed) feed.style.display = 'none';
+    document.getElementById('messageSidebar')?.classList.remove('open');
+    document.getElementById('chatSidebar')?.classList.remove('open');
+
+    let container = document.getElementById('mapContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'mapContainer';
+        container.className = 'map-container';
+        container.innerHTML = `
+            <img src="assets/images/map_bg.png" class="map-bg" alt="地图">
+            <div class="city-points" id="cityPoints"></div>
+            <div class="map-info-panel">
+                <div class="info-item">
+                    <span class="label">当前位置</span>
+                    <span class="value" id="mapCurrentCity">${playerCity}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">💰 余额</span>
+                    <span class="value" id="mapBalance">¥${affairData?.savings?.toLocaleString() || '5000'}</span>
+                </div>
+                <button class="btn-travel" id="mapTravelBtn">✈️ 出行</button>
+            </div>
+        `;
+        const mainContainer = document.querySelector('.main-container') || document.body;
+        mainContainer.appendChild(container);
+    }
+
+    container.classList.add('active');
+    container.style.display = 'block';
+
+    renderCityPoints();
+    updateMapInfo();
+
+    document.getElementById('mapTravelBtn')?.addEventListener('click', openTravelModal);
+}
+
+// ===== 关闭地图 =====
+function closeMap() {
+    const container = document.getElementById('mapContainer');
+    if (container) {
+        container.classList.remove('active');
+        container.style.display = 'none';
+    }
+    if (mapAnimationId) {
+        cancelAnimationFrame(mapAnimationId);
+        mapAnimationId = null;
+    }
+    // 恢复 Feed
+    const feed = document.getElementById('feedContainer');
+    if (feed) feed.style.display = 'block';
+}
+
+// ===== 更新地图信息 =====
+function updateMapInfo() {
+    const cityEl = document.getElementById('mapCurrentCity');
+    if (cityEl) cityEl.textContent = playerCity;
+
+    const balanceEl = document.getElementById('mapBalance');
+    if (balanceEl && affairData) {
+        balanceEl.textContent = '¥' + (affairData.savings || 0).toLocaleString();
+    }
+}
+
+// ===== 地图鼠标事件（图片底图版） =====
+document.addEventListener('mousemove', function(e) {
+    const container = document.getElementById('mapContainer');
+    if (!container || !container.classList.contains('active')) return;
+    
+    const dots = document.querySelectorAll('.city-dot');
+    let found = null;
+    dots.forEach(dot => {
+        const rect = dot.getBoundingClientRect();
+        const cx = rect.left + rect.width/2;
+        const cy = rect.top + rect.height/2;
+        const dist = Math.sqrt((e.clientX - cx) ** 2 + (e.clientY - cy) ** 2);
+        if (dist < 30) {
+            found = dot.dataset.city;
+        }
+    });
+    
+    if (found !== hoveredCity) {
+        hoveredCity = found;
+        document.body.style.cursor = found ? 'pointer' : 'default';
+    }
+});
+
+document.addEventListener('click', function(e) {
+    const container = document.getElementById('mapContainer');
+    if (!container || !container.classList.contains('active')) return;
+    if (cityDetailOpen || travelOpen) return;
+
+    const dots = document.querySelectorAll('.city-dot');
+    let clicked = null;
+    dots.forEach(dot => {
+        const rect = dot.getBoundingClientRect();
+        const cx = rect.left + rect.width/2;
+        const cy = rect.top + rect.height/2;
+        const dist = Math.sqrt((e.clientX - cx) ** 2 + (e.clientY - cy) ** 2);
+        if (dist < 35) {
+            clicked = CITY_DATA.find(c => c.name === dot.dataset.city);
+        }
+    });
+
+    if (clicked) {
+        openCityDetail(clicked);
+    }
+});
+// ===== 城市详情弹窗 =====
+function openCityDetail(city) {
+    cityDetailOpen = true;
+    const modal = document.getElementById('cityDetailModal');
+    if (!modal) {
+        const div = document.createElement('div');
+        div.id = 'cityDetailModal';
+        div.className = 'city-detail-modal';
+        div.innerHTML = `
+            <div class="city-detail-content">
+                <button class="close-btn" onclick="closeCityDetail()">✕</button>
+                <div class="city-name" id="detailCityName">${city.name}</div>
+                <div class="city-region" id="detailCityRegion">${city.region || '中国'}</div>
+                <div class="city-status">
+                    <span>📍 <span id="detailCityStatus">${isSameCity(city.name) ? '当前所在' : '未探索'}</span></span>
+                    <span>👥 <span id="detailCityResidentCount">${city.residents?.length || 0}</span> 位居民</span>
+                </div>
+                <div class="city-residents">
+                    <div class="label">🏠 居住在此的伙伴</div>
+                    <div class="names" id="detailCityResidents">${city.residents?.length ? city.residents.join('、') : '暂无伙伴'}</div>
+                </div>
+                <div class="action-btns">
+                    <button class="btn-visit" id="detailVisitBtn" onclick="travelToCity('${city.name}')">✈️ 前往</button>
+                    <button class="btn-close-detail" onclick="closeCityDetail()">关闭</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(div);
+    }
+
+    const content = modal.querySelector('.city-detail-content');
+    content.querySelector('.city-name').textContent = city.name;
+    content.querySelector('.city-region').textContent = city.region || '中国';
+
+    const isCurrent = isSameCity(city.name);
+    content.querySelector('#detailCityStatus').textContent = isCurrent ? '📍 当前所在' : '未探索';
+    content.querySelector('#detailCityStatus').style.color = isCurrent ? '#4ecdc4' : '#888';
+
+    const residents = city.residents || [];
+    content.querySelector('#detailCityResidentCount').textContent = residents.length;
+    content.querySelector('#detailCityResidents').textContent = residents.length ? residents.join('、') : '暂无伙伴';
+
+    const visitBtn = content.querySelector('#detailVisitBtn');
+    if (isCurrent) {
+        visitBtn.textContent = '📍 已在这里';
+        visitBtn.disabled = true;
+    } else {
+        visitBtn.textContent = '✈️ 前往 ' + city.name;
+        visitBtn.disabled = false;
+    }
+
+    modal.classList.add('open');
+}
+
+function closeCityDetail() {
+    cityDetailOpen = false;
+    const modal = document.getElementById('cityDetailModal');
+    if (modal) modal.classList.remove('open');
+}
+
+// ===== 出行弹窗 =====
+function openTravelModal() {
+    travelOpen = true;
+    let modal = document.getElementById('travelModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'travelModal';
+        modal.className = 'travel-modal';
+        modal.innerHTML = `
+            <div class="travel-content">
+                <button class="close-btn" onclick="closeTravelModal()">✕</button>
+                <div class="title">✈️ 出行</div>
+                <div class="sub">当前城市：<span id="travelCurrentCity" style="color:#ffd700;">${playerCity}</span></div>
+                <div class="city-list" id="travelCityList"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    document.getElementById('travelCurrentCity').textContent = playerCity;
+    renderTravelCities();
+    modal.classList.add('open');
+}
+
+function closeTravelModal() {
+    travelOpen = false;
+    const modal = document.getElementById('travelModal');
+    if (modal) modal.classList.remove('open');
+}
+
+function renderTravelCities() {
+    const list = document.getElementById('travelCityList');
+    if (!list) return;
+
+    list.innerHTML = '';
+    const balance = affairData?.savings || 0;
+
+    CITY_DATA.forEach(city => {
+        const isCurrent = city.name === playerCity;
+        const price = city.level === 1 ? 800 : city.level === 2 ? 500 : 300;
+        const canAfford = balance >= price;
+
+        const div = document.createElement('div');
+        div.className = `city-option ${isCurrent ? 'current' : ''}`;
+        div.innerHTML = `
+            <div>
+                <div class="name">${city.name} ${isCurrent ? '📍' : ''}</div>
+                <div style="font-size:11px;color:#666;">${city.region || ''} ${isCurrent ? '· 当前所在' : ''}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span class="price">✈️ ¥${price}</span>
+                <button class="action" ${isCurrent || !canAfford ? 'disabled' : ''} onclick="travelToCity('${city.name}')">
+                    ${isCurrent ? '已在这里' : !canAfford ? '余额不足' : '购买'}
+                </button>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+}
+
+// ===== 前往城市 =====
+function travelToCity(cityName) {
+    if (cityName === playerCity) {
+        showToast('📍 你已在这个城市');
+        return;
+    }
+
+    const city = getCityByName(cityName);
+    if (!city) return;
+
+    const price = city.level === 1 ? 800 : city.level === 2 ? 500 : 300;
+
+    if ((affairData?.savings || 0) < price) {
+        showToast('❌ 余额不足，需要 ¥' + price);
+        return;
+    }
+
+    if (!confirm(`✈️ 确定前往 ${cityName}？\n机票费用：¥${price}\n当前余额：¥${affairData.savings.toLocaleString()}`)) {
+        return;
+    }
+
+    // 扣钱
+    affairData.savings -= price;
+    saveAffair();
+
+    // 更新玩家城市
+    playerCity = cityName;
+    localStorage.setItem('playerCity', playerCity);
+    affairData.city = cityName;  
+    saveAffair();               
+    renderCityPoints(); 
+
+    // 更新UI
+    updateMapInfo();
+    closeCityDetail();
+    closeTravelModal();
+    updateWeatherDisplay(); 
+
+    showToast(`✈️ 已到达 ${cityName}！费用 ¥${price}`);
+
+    // 检查是否有伙伴
+    const residents = city.residents || [];
+    if (residents.length > 0) {
+        setTimeout(() => {
+            showToast(`👋 ${residents.join('、')} 在这里等你`);
+        }, 600);
+    }
+}
+
+// ===== 导航入口 =====
+// 在 init 函数中添加
+document.getElementById('mapNav')?.addEventListener('click', function() {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    this.classList.add('active');
+    openMap();
+});
+
+// ===== 窗口调整 =====
+window.addEventListener('resize', function() {
+});
+
+// ===== 初始化地图数据到 affairData =====
+if (!affairData.city) {
+    affairData.city = playerCity;
+    saveAffair();
+}
+function renderCityPoints() {
+    const container = document.getElementById('cityPoints');
+    if (!container) return;
+    container.innerHTML = '';
+
+    CITY_DATA.forEach(city => {
+        const isCurrent = city.name === playerCity;
+        const colors = getCityColor(city.level);
+        
+        const dot = document.createElement('div');
+        dot.className = `city-dot ${isCurrent ? 'current' : ''}`;
+        dot.style.left = city.x / 10 + '%';
+        dot.style.top = city.y / 7 + '%';
+         dot.style.width = isCurrent ? '28px' : city.level === 1 ? '25px' : city.level === 2 ? '22px' : '20px';
+        dot.style.height = dot.style.width;
+        dot.style.background = isCurrent ? '#ffffff' : colors.core;
+       dot.style.boxShadow = isCurrent 
+            ? '0 0 40px rgba(255,255,255,0.6), 0 0 80px rgba(255,255,255,0.3)' 
+            : `0 0 16px ${colors.glow}`;
+        dot.style.border = isCurrent ? 'none' : '2px solid rgba(255,255,255,0.2)';
+        dot.dataset.city = city.name;
+        
+       const label = document.createElement('span');
+label.className = 'city-label';
+label.textContent = city.name;
+label.style.cssText = `
+    position: absolute;
+    bottom: ${isCurrent ? '-28px' : '-22px'};
+    left: 50%;
+    transform: translateX(-50%);
+    color: ${isCurrent ? '#ffffff' : '#c9b89a'};
+    font-size: ${isCurrent ? '18px' : '16px'};
+    font-weight: ${isCurrent ? 'bold' : 'normal'};
+    white-space: nowrap;
+    text-shadow: 0 0 12px rgba(0,0,0,0.9);
+    pointer-events: none;
+    opacity: ${isCurrent ? '1' : '0.85'};
+`;
+dot.appendChild(label);
+        
+        dot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openCityDetail(city);
+        });
+        
+        dot.addEventListener('mouseenter', () => {
+            dot.style.transform = 'translate(-50%, -50%) scale(1.4)';
+            dot.style.zIndex = '20';
+        });
+        dot.addEventListener('mouseleave', () => {
+            dot.style.transform = 'translate(-50%, -50%) scale(1)';
+            dot.style.zIndex = '10';
+        });
+        
+        container.appendChild(dot);
+    });
+}
+// ============================================================
+// 🎒 背包系统
+// ============================================================
+
+// 背包数据（与商城共用）
+let inventory = JSON.parse(localStorage.getItem('inventory') || '[]');
+
+// 商城物品配置
+const SHOP_ITEMS = [
+    { id: 'rose', name: '🌹 玫瑰', icon: '🌹', price: 50, desc: '送给NPC增加好感' },
+    { id: 'rocket', name: '🚀 火箭', icon: '🚀', price: 500, desc: '超级礼物，好感大增' },
+    { id: 'cake', name: '🎂 蛋糕', icon: '🎂', price: 100, desc: '甜蜜的礼物' },
+    { id: 'diamond', name: '💎 钻石', icon: '💎', price: 2000, desc: '最珍贵的礼物' },
+    { id: 'crown', name: '👑 皇冠', icon: '👑', price: 5000, desc: '至高无上的荣耀' },
+];
+
+// 打开背包
+function openBackpack() {
+    const modal = document.getElementById('backpackModal');
+    if (!modal) {
+        const div = document.createElement('div');
+        div.id = 'backpackModal';
+        div.className = 'backpack-modal';
+        div.innerHTML = `
+            <div class="backpack-content">
+                <button class="close-btn" onclick="closeBackpack()">✕</button>
+                <div class="backpack-header">
+                    <div class="backpack-title">🎒 背包</div>
+                    <div class="backpack-count">共 <span id="backpackCount">0</span> 件</div>
+                </div>
+                <div class="backpack-list" id="backpackList">
+                    <div class="empty-backpack">背包空空如也<br><span style="font-size:12px;color:#888;">去商店购买物品吧</span></div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(div);
+        div.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeBackpack();
+            }
+        });
+    }
+    
+    renderBackpack();
+    modal.classList.add('open');
+}
+
+function closeBackpack() {
+    document.getElementById('backpackModal')?.classList.remove('open');
+}
+
+function renderBackpack() {
+    const list = document.getElementById('backpackList');
+    const count = document.getElementById('backpackCount');
+    
+    
+    if (!list) return;
+    if (inventory.length === 0) {
+        list.innerHTML = `
+            <div class="empty-backpack">
+                <div style="font-size:40px;margin-bottom:10px;">🎒</div>
+                背包空空如也
+                <div style="font-size:12px;color:#888;margin-top:4px;">去商店购买物品吧</div>
+            </div>
+        `;
+        if (count) count.textContent = '0';
+        return;
+    }
+    
+    if (count) count.textContent = inventory.length;
+    
+    // 统计每种物品的数量
+    const itemCount = {};
+    inventory.forEach(id => {
+        itemCount[id] = (itemCount[id] || 0) + 1;
+    });
+    
+    list.innerHTML = Object.keys(itemCount).map(id => {
+        const item = SHOP_ITEMS.find(i => i.id === id);
+        const num = itemCount[id];
+        return `
+            <div class="backpack-item">
+                <div class="item-icon">${item?.icon || '📦'}</div>
+                <div class="item-info">
+                    <div class="item-name">${item?.name || id}</div>
+                    <div class="item-desc">${item?.desc || '未知物品'}</div>
+                </div>
+                <div class="item-count">×${num}</div>
+                <button class="item-use-btn" onclick="useItem('${id}')">使用</button>
+            </div>
+        `;
+    }).join('');
+}
+
+function useItem(itemId) {
+    const item = SHOP_ITEMS.find(i => i.id === itemId);
+    if (!item) return;
+    
+    // 使用物品（这里简单实现送礼功能）
+    const index = inventory.indexOf(itemId);
+    if (index === -1) return;
+    inventory.splice(index, 1);
+    localStorage.setItem('inventory', JSON.stringify(inventory));
+    
+    // 如果是礼物类，找当前聊天的NPC送礼
+    if (currentChatHost) {
+        const gain = Math.floor(Math.random() * 5) + 2;
+        addAffection(currentChatHost.name, gain);
+        showToast(`🎁 送给 ${currentChatHost.name} ${item.name}，好感度 +${gain}`);
+    } else {
+        showToast(`🎁 使用了 ${item.name}，但不知道送给谁`);
+    }
+    
+    renderBackpack();
+    updateBackpackBadge();
+}
+
+// 购物函数（从商城购买）
+function buyItem(itemId) {
+    const item = SHOP_ITEMS.find(i => i.id === itemId);
+    if (!item) return;
+    
+    if ((affairData.savings || 0) < item.price) {
+        showToast('❌ 金币不够');
+        return;
+    }
+    
+    affairData.savings -= item.price;
+    inventory.push(itemId);
+    localStorage.setItem('inventory', JSON.stringify(inventory));
+    saveAffair();
+    
+    renderShop();
+    updateBackpackBadge();
+    showToast(`✅ 购买了 ${item.name}`);
+}
+// ===== 右侧功能页面切换 =====
+let currentAffairPage = null;
+
+function switchAffairPage(page) {
+    // 高亮图标
+    document.querySelectorAll('.grid-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.page === page);
+    });
+    
+    // 隐藏所有页面
+    document.querySelectorAll('.affair-page').forEach(p => {
+        p.style.display = 'none';
+    });
+    document.getElementById('pagePlaceholder').style.display = 'none';
+    
+    // 显示对应页面
+    const target = document.getElementById('page' + page.charAt(0).toUpperCase() + page.slice(1));
+    if (target) {
+        target.style.display = 'flex';
+        target.style.flexDirection = 'column';
+        target.style.height = '100%';
+    }
+    
+    currentAffairPage = page;
+    
+    // 如果是背包，渲染背包内容
+    if (page === 'backpack') {
+        renderPageBackpack();
+    }
+}
+
+function closeAffairPage() {
+    // 取消高亮
+    document.querySelectorAll('.grid-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    // 隐藏所有页面
+    document.querySelectorAll('.affair-page').forEach(p => {
+        p.style.display = 'none';
+    });
+    // 显示占位
+    document.getElementById('pagePlaceholder').style.display = 'flex';
+    currentAffairPage = null;
+}
+
+function renderPageBackpack() {
+    const container = document.getElementById('pageBackpackBody');
+    if (!container) return;
+    
+    if (inventory.length === 0) {
+        container.innerHTML = `
+            <div class="page-placeholder-content">
+                <div style="font-size:40px;margin-bottom:10px;">🎒</div>
+                <div style="font-size:16px;color:#888;">背包空空如也</div>
+                <div style="font-size:13px;color:#666;margin-top:6px;">去商城购买物品吧</div>
+            </div>
+        `;
+        return;
+    }
+    
+    const itemCount = {};
+    inventory.forEach(id => {
+        itemCount[id] = (itemCount[id] || 0) + 1;
+    });
+    
+    container.innerHTML = Object.keys(itemCount).map(id => {
+        const item = SHOP_ITEMS.find(i => i.id === id);
+        const num = itemCount[id];
+        return `
+            <div class="backpack-item" style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:6px;">
+                <span style="font-size:24px;">${item?.icon || '📦'}</span>
+                <span style="flex:1;color:#fff;">${item?.name || id}</span>
+                <span style="color:#ffd700;">×${num}</span>
+                <button class="item-use-btn" onclick="useItem('${id}')" style="padding:2px 12px;border-radius:4px;border:none;background:linear-gradient(135deg,#ffd700,#f0a500);color:#1a1a2e;font-size:12px;font-weight:bold;cursor:pointer;">使用</button>
+            </div>
+        `;
+    }).join('');
+}
+// ===== 位置发送功能 =====
+function sendLocation() {
+    if (!popupCurrentHost) {
+        showToast('❌ 请先打开聊天窗口');
+        return;
+    }
+    
+    // 获取当前城市
+    const cityName = affairData?.city || playerCity || '北京';
+    const city = getCityByName(cityName);
+    
+    // 发送位置消息
+    const hostName = popupCurrentHost.name;
+    if (!messageHistory[hostName]) messageHistory[hostName] = [];
+    
+    // ✅ 添加用户位置消息 - 显示为 "我的位置：城市名"
+    messageHistory[hostName].push({ 
+        sender: 'me', 
+        type: 'location',
+        location: cityName,
+        text: `我的位置：${cityName}`
+    });
+    
+    renderPopupMessages();
+    localStorage.setItem('messageHistory', JSON.stringify(messageHistory));
+    
+    // 触发AI回复（带位置上下文）
+    sendLocationAIResponse(hostName, cityName);
+}
+
+// ===== AI 回复位置消息 =====
+async function sendLocationAIResponse(hostName, cityName) {
+    const host = hosts.find(h => h.name === hostName);
+    if (!host) return;
+    
+    // 显示正在输入
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'typing-indicator';
+    typingDiv.innerText = '对方正在查看你的位置...';
+    document.getElementById('popupMessages').appendChild(typingDiv);
+    
+    const city = getCityByName(cityName);
+    const residents = city?.residents || [];
+    const residentNames = residents.length > 0 ? residents.join('、') : '没有伙伴';
+    
+    const systemPrompt = `你是${hostName}，性格：${host.personality || '温柔可爱'}。
+用户给你发了一个位置：${cityName}。
+${cityName}的居民有：${residentNames}。
+
+请根据以下情况回复：
+1. 如果城市里有你认识的人，可以表达惊喜或想念
+2. 回复 自然，带情感，或是疑问，或是厌恶
+3. 上下文回答一定要连贯，不能突然很生硬的人机回答`;
+
+    try {
+        const response = await fetch(DEEPSEEK_API_URL, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: AI_MODEL,
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: `我目前在 ${cityName}，想和你分享我的位置` }
+                ],
+                temperature: 0.9,
+                max_tokens: 100
+            })
+        });
+        
+        const data = await response.json();
+        let reply = data.choices?.[0]?.message?.content || `哇，你在 ${cityName} 啊！那里一定很有趣~`;
+        
+        typingDiv.remove();
+        
+        // 打字机效果
+        const tempBubble = document.createElement('div');
+        tempBubble.className = 'message-bubble ai-message';
+        document.getElementById('popupMessages').appendChild(tempBubble);
+        await typeMessageForPopup(tempBubble, reply, 25);
+        
+        // 保存AI回复
+        messageHistory[hostName].push({ sender: 'ai', text: reply });
+        localStorage.setItem('messageHistory', JSON.stringify(messageHistory));
+        
+        // 增加好感度
+        const gain = Math.floor(Math.random() * 2) + 1;
+        addAffection(hostName, gain);
+        
+    } catch (error) {
+        console.error('位置回复失败:', error);
+        typingDiv.remove();
+        const fallbackReply = `📍 ${cityName}！听说那里挺不错的，下次带我去玩好不好？`;
+        const tempBubble = document.createElement('div');
+        tempBubble.className = 'message-bubble ai-message';
+        document.getElementById('popupMessages').appendChild(tempBubble);
+        await typeMessageForPopup(tempBubble, fallbackReply, 25);
+        messageHistory[hostName].push({ sender: 'ai', text: fallbackReply });
+        localStorage.setItem('messageHistory', JSON.stringify(messageHistory));
+    }
+}
+// 页面关闭时清理定时器
+window.addEventListener('beforeunload', clearAllActiveTimers);
+</script>
+</body>
+</html>
