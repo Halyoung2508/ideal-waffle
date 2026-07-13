@@ -1,0 +1,94 @@
+const hosts = [
+  {
+    "id": 1,
+    "name": "菌烨tako",
+    "avatar": "assets/images/default_avatar.jpg",
+    "coverImg": "assets/images/default_cover.jpg",
+    "personality": "温柔可爱",
+    "shape": "待补充",
+    "style": "温柔亲切，用「宝贝」称呼",
+    "greeting": "你好呀~",
+    "fans": 0,
+    "liveTime": "今晚 20:00",
+    "liveUrl": "",
+    "works": []
+  },
+  {
+    "id": 2,
+    "name": "菌烨tako",
+    "avatar": "assets/images/default_avatar.jpg",
+    "coverImg": "assets/images/default_cover.jpg",
+    "personality": "未分类的主页",
+    "shape": "待补充",
+    "style": "温柔亲切，用「宝贝」称呼",
+    "greeting": "你好呀，我是未分类~",
+    "fans": 0,
+    "liveTime": "待定",
+    "liveUrl": "",
+    "works": [
+      {
+        "id": 1,
+        "title": "",
+        "videoUrl": "/home/hal/project/infinitite-money/assets/videos/20260614_141221_80970136_.mp4",
+        "coverImg": "assets/images/default_cover.jpg",
+        "likes": 0,
+        "duration": "00:30"
+      },
+      {
+        "id": 2,
+        "title": "",
+        "videoUrl": "/home/hal/project/infinitite-money/assets/videos/20260614_141234_897d3629_.mp4",
+        "coverImg": "assets/images/default_cover.jpg",
+        "likes": 0,
+        "duration": "00:30"
+      },
+      {
+        "id": 3,
+        "title": "",
+        "videoUrl": "/home/hal/project/infinitite-money/assets/videos/20260614_141250_31055a5f_.mp4",
+        "coverImg": "assets/images/default_cover.jpg",
+        "likes": 0,
+        "duration": "00:30"
+      },
+      {
+        "id": 4,
+        "title": "",
+        "videoUrl": "/home/hal/project/infinitite-money/assets/videos/20260614_141408_23f5eab1_.mp4",
+        "coverImg": "assets/images/default_cover.jpg",
+        "likes": 0,
+        "duration": "00:30"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "菌烨tako",
+    "avatar": "assets/images/default_avatar.jpg",
+    "coverImg": "assets/images/default_cover.jpg",
+    "personality": "菌烨tako的主页",
+    "shape": "待补充",
+    "style": "温柔亲切，用「宝贝」称呼",
+    "greeting": "你好呀，我是菌烨tako~",
+    "fans": 0,
+    "liveTime": "待定",
+    "liveUrl": "",
+    "works": [
+      {
+        "id": 1,
+        "title": "",
+        "videoUrl": "/home/hal/project/infinitite-money/assets/videos/20260614_141353_7f20d76e_.mp4",
+        "coverImg": "assets/images/default_cover.jpg",
+        "likes": 0,
+        "duration": "00:30"
+      },
+      {
+        "id": 2,
+        "title": "",
+        "videoUrl": "/home/hal/project/infinitite-money/assets/videos/20260614_141423_6de13b21_.mp4",
+        "coverImg": "assets/images/default_cover.jpg",
+        "likes": 0,
+        "duration": "00:30"
+      }
+    ]
+  }
+];
